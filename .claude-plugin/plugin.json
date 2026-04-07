@@ -6,12 +6,5 @@
   "homepage": "https://github.com/alexander-gavrilov/obsidian-second-brain-plugin",
   "repository": "https://github.com/alexander-gavrilov/obsidian-second-brain-plugin",
   "license": "MIT",
-  "keywords": ["obsidian", "notes", "knowledge-base", "second-brain", "pkm"],
-  "skills": [
-    "skills/obsidian-init",
-    "skills/obsidian-ingest",
-    "skills/obsidian-query",
-    "skills/obsidian-lint",
-    "skills/obsidian-migrate"
-  ]
+  "keywords": ["obsidian", "notes", "knowledge-base", "second-brain", "pkm"]
 }
