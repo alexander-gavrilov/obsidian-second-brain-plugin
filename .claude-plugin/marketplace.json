@@ -1,0 +1,21 @@
+{
+  "name": "obsidian-second-brain",
+  "owner": {
+    "name": "alexander-gavrilov"
+  },
+  "metadata": {
+    "description": "Obsidian vault skills for Claude Code — ingest, query, lint, and migrate notes in any vault",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "obsidian-second-brain-plugin",
+      "source": ".",
+      "description": "Obsidian vault skills for Claude Code — ingest, query, lint, and migrate notes in any vault",
+      "version": "1.0.0",
+      "author": { "name": "alexander-gavrilov" },
+      "license": "MIT",
+      "keywords": ["obsidian", "notes", "knowledge-base", "second-brain", "pkm"]
+    }
+  ]
+}
