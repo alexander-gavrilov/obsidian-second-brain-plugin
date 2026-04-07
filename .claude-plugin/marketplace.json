@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "obsidian-second-brain-plugin",
-      "source": ".",
+      "source": "./",
       "description": "Obsidian vault skills for Claude Code — ingest, query, lint, and migrate notes in any vault",
       "version": "1.0.0",
       "author": { "name": "alexander-gavrilov" },
