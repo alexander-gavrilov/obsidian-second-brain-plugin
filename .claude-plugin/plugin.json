@@ -8,6 +8,7 @@
   "license": "MIT",
   "keywords": ["obsidian", "notes", "knowledge-base", "second-brain", "pkm"],
   "skills": [
+    "skills/obsidian-init",
     "skills/obsidian-ingest",
     "skills/obsidian-query",
     "skills/obsidian-lint",
