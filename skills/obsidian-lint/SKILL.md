@@ -31,11 +31,15 @@ A page is orphaned if no other file contains `[[wiki/category/page-name]]` or an
 ### 3. Missing wiki pages for recurring entities
 Scan raw notes and wiki pages for entity names that appear in 3+ files but don't have their own wiki page. These are candidates for promotion — they've accumulated enough mentions to justify a dedicated page.
 
+To scan raw notes use `Glob: raw/**/*.md` (covers the date-folder structure).
+
 ### 4. Stale pages
 Flag wiki pages whose `updated` front matter date is older than 6 months. These may need review — not necessarily wrong, but worth knowing about.
 
 ### 5. Broken links
 Scan all files for `[[links]]` that point to paths that don't exist. These are broken references.
+
+For raw file links, the expected format is `[[raw/YYYY-MM-DD/title]]` (date folder, not date prefix). Flag any links still using the old `[[raw/YYYY-MM-DD-title]]` flat format as broken.
 
 ### 6. Log gaps
 Check if `log.md` has entries for the approximate period when wiki pages were created (based on `updated` dates). Large gaps suggest activity that wasn't logged.

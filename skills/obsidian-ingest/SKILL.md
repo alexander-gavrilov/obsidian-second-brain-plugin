@@ -27,7 +27,9 @@ Before creating anything, check if this source was already ingested:
 
 If a duplicate is found, tell the user and proceed to update the relevant wiki pages with any new information.
 
-Create a file in `raw/` named `YYYY-MM-DD-short-title.md` using today's date. The title should be 2-5 words, lowercase-hyphenated, descriptive of the content (not generic like "note" or "article").
+Create a folder `raw/YYYY-MM-DD/` for today's date (if it doesn't exist), then create a file inside it named `short-title.md`. The title should be 2-5 words, lowercase-hyphenated, descriptive of the content (not generic like "note" or "article").
+
+For **media files** (images, PDFs, audio, video) provided as file paths: copy or reference them into the same `raw/YYYY-MM-DD/` folder. Create a companion `.md` file (e.g., `screenshot.md`) to hold the front matter and any notes about the media.
 
 Front matter:
 ```
@@ -83,7 +85,7 @@ updated: YYYY-MM-DD
 Content guidelines:
 - Write in a neutral, encyclopedic tone — this is a reference, not a diary
 - Link to related wiki pages using `[[wiki/category/page-name]]`
-- Include a "Sources" section at the bottom linking back to the raw file(s): `[[raw/YYYY-MM-DD-title]]`
+- Include a "Sources" section at the bottom linking back to the raw file(s): `[[raw/YYYY-MM-DD/title]]`
 - Keep it dense and scannable — use headers for longer pages, bullet points for lists of facts
 
 ## Step 5: Update index.md
@@ -102,7 +104,7 @@ Add an entry at the bottom of `log.md`:
 
 ```
 ## YYYY-MM-DD
-- INGEST: <short-title> → created raw/YYYY-MM-DD-short-title, [created|updated] wiki/<pages>
+- INGEST: <short-title> → created raw/YYYY-MM-DD/short-title, [created|updated] wiki/<pages>
 ```
 
 If a log entry for today already exists, append to it rather than creating a duplicate header.

@@ -54,9 +54,10 @@ Show the user the filter results before proceeding: "Found N notes, skipping N t
 
 ## Step 3: Create raw files
 
-For each note, create `raw/YYYY-MM-DD-<slug>.md` where:
+For each note, create `raw/YYYY-MM-DD/<slug>.md` where:
 - Date comes from `userEditedTimestampUsec` (divide by 1,000,000 to get Unix timestamp)
 - Slug is derived from the title (if present) or first 5 words of content, lowercase-hyphenated
+- Group all notes from the same date into the same `raw/YYYY-MM-DD/` folder
 
 Front matter:
 ```
