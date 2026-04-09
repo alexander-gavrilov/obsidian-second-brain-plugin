@@ -4,8 +4,14 @@ A Claude Code plugin with four skills for managing an [Obsidian](https://obsidia
 
 ## Install
 
+**Claude Code:**
 ```
 /plugin install alexander-gavrilov/obsidian-second-brain-plugin
+```
+
+**Gemini CLI:**
+```
+gemini extensions add alexander-gavrilov/obsidian-second-brain-plugin
 ```
 
 ## Skills
