@@ -1,6 +1,6 @@
 # Obsidian Second Brain Plugin
 
-A Claude Code plugin with four skills for managing an [Obsidian](https://obsidian.md) knowledge vault — vault-agnostic, works with any vault structure defined in a `schema.md`.
+A Claude Code plugin and Gemini CLI extension with skills for managing an [Obsidian](https://obsidian.md) knowledge vault — vault-agnostic, works with any vault structure defined in a `schema.md`.
 
 ## Install
 
@@ -35,6 +35,16 @@ Health check for your vault — finds missing index entries, orphaned pages, bro
 Import notes from Google Keep (or other sources) via export files. Filters, creates raw notes, selectively builds wiki pages.
 
 **Trigger:** "migrate my Keep notes", "import this export", share a path to a Keep export folder.
+
+### `obsidian-init`
+Scaffold a fresh vault with the second-brain structure — interviews you on categories, creates folder layout, writes `schema.md`.
+
+**Trigger:** "set up my vault", "initialize this vault", "create my second brain".
+
+### `obsidian-restructure`
+Migrate an existing vault from the old flat `raw/` layout (`raw/YYYY-MM-DD-title.md`) to the date-folder layout (`raw/YYYY-MM-DD/title.md`), updating all internal links.
+
+**Trigger:** "restructure raw folder", "upgrade my vault", "convert to date folders".
 
 ## Vault conventions
 
