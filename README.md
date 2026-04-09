@@ -50,6 +50,23 @@ Migrate an existing vault from the old flat `raw/` layout (`raw/YYYY-MM-DD-title
 
 Each skill reads `schema.md` in the vault root first. Create this file to describe your folder structure, front matter formats, and naming conventions — the skills adapt to it.
 
+## Development
+
+### Eval workspace
+
+`obsidian-skills-workspace/` contains skill evaluation runs used to verify the `raw/` date-folder restructure (2026-04-09):
+
+- `evals/evals.json` — test cases and assertions
+- `iteration-1/` — first run (shared vaults between with/without_skill; baseline for eval 1 invalid)
+- `iteration-2/` — fixed run (separate vaults; old `schema.md` used for eval 2 to test skill override)
+
+**Key findings:**
+- Skills correctly produce `raw/YYYY-MM-DD/` structure in all cases
+- With an outdated `schema.md`, `obsidian-ingest` is the only mechanism enforcing the new convention (baseline falls back to old flat format)
+- `obsidian-restructure` reliably adds the `RESTRUCTURE` log entry; baseline consistently skips it
+
+To run future evals, use separate vault copies per agent to avoid contamination.
+
 ## License
 
 MIT

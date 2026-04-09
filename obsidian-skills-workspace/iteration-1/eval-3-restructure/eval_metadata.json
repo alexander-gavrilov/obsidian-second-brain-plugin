@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "restructure-old-vault",
+  "prompt": "Restructure my vault's raw folder to the new date-folder format.",
+  "assertions": [
+    {"id": "flat-files-removed", "text": "No .md files remain directly in raw/ (raw/*.md is empty)"},
+    {"id": "files-in-date-folders", "text": "All 3 raw files exist in their correct date subfolders"},
+    {"id": "old-wiki-links-rewritten", "text": "wiki/learning/machine-learning.md no longer contains [[raw/2024-01-15-machine-learning-basics]], uses [[raw/2024-01-15/machine-learning-basics]] instead"},
+    {"id": "log-entry-added", "text": "log.md has a RESTRUCTURE entry"}
+  ]
+}

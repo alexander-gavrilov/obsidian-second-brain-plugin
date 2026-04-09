@@ -1,0 +1,283 @@
+{
+  "metadata": {
+    "skill_name": "obsidian-skills",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-09T07:42:44Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Raw file is inside a date subfolder (raw/YYYY-MM-DD/), not flat in raw/",
+          "passed": true,
+          "evidence": "File created at raw/2026-04-09/deep-work-cal-newport.md \u2014 inside a date subfolder"
+        },
+        {
+          "text": "No file exists at raw/2026-04-09-*.md (old flat format)",
+          "passed": true,
+          "evidence": "Only raw/2026-04-09/deep-work-cal-newport.md exists; no flat files in raw/ root"
+        },
+        {
+          "text": "Sources links in wiki pages use [[raw/YYYY-MM-DD/title]] not [[raw/YYYY-MM-DD-title]]",
+          "passed": true,
+          "evidence": "Both wiki pages contain Sources: [[raw/2026-04-09/deep-work-cal-newport]]"
+        },
+        {
+          "text": "log.md entry references raw/YYYY-MM-DD/title not raw/YYYY-MM-DD-title",
+          "passed": true,
+          "evidence": "log.md: 'created raw/2026-04-09/deep-work-cal-newport'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "raw/2026-04-09/ directory created",
+          "passed": true,
+          "evidence": "Verified: /tmp/test-vault-media/raw/2026-04-09/ exists"
+        },
+        {
+          "text": "A .md file exists inside raw/2026-04-09/ (companion note for the media)",
+          "passed": true,
+          "evidence": "system-design-whiteboard.md at raw/2026-04-09/"
+        },
+        {
+          "text": "The raw .md file references the image path or file name",
+          "passed": true,
+          "evidence": "Companion note embeds whiteboard-2026-04-09.png"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No .md files remain directly in raw/",
+          "passed": true,
+          "evidence": "find raw/*.md returns empty"
+        },
+        {
+          "text": "All 3 raw files exist in correct date subfolders",
+          "passed": true,
+          "evidence": "raw/2024-01-15/ and raw/2024-03-20/ contain all 3 files"
+        },
+        {
+          "text": "wiki link uses [[raw/2024-01-15/machine-learning-basics]] (new format)",
+          "passed": true,
+          "evidence": "Verified in wiki/learning/machine-learning.md"
+        },
+        {
+          "text": "log.md has a RESTRUCTURE entry",
+          "passed": true,
+          "evidence": "log.md: '- RESTRUCTURE: migrated 3 raw files to date-folder layout, updated 1 link across 1 wiki page'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Raw file is inside a date subfolder (raw/YYYY-MM-DD/), not flat in raw/",
+          "passed": false,
+          "evidence": "INVALID: shared vault contamination with with_skill run"
+        },
+        {
+          "text": "No file exists at raw/2026-04-09-*.md (old flat format)",
+          "passed": false,
+          "evidence": "INVALID: shared vault contamination"
+        },
+        {
+          "text": "Sources links in wiki pages use [[raw/YYYY-MM-DD/title]] not [[raw/YYYY-MM-DD-title]]",
+          "passed": false,
+          "evidence": "INVALID: shared vault contamination"
+        },
+        {
+          "text": "log.md entry references raw/YYYY-MM-DD/title not raw/YYYY-MM-DD-title",
+          "passed": false,
+          "evidence": "INVALID: shared vault contamination"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "raw/2026-04-09/ directory created",
+          "passed": true,
+          "evidence": "Verified: raw/2026-04-09/ exists in separate vault"
+        },
+        {
+          "text": "A .md file exists inside raw/2026-04-09/ (companion note for the media)",
+          "passed": true,
+          "evidence": "system-design-whiteboard.md at raw/2026-04-09/"
+        },
+        {
+          "text": "The raw .md file references the image path or file name",
+          "passed": true,
+          "evidence": "Companion note references the image"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No .md files remain directly in raw/",
+          "passed": true,
+          "evidence": "Baseline moved all 3 flat files into date subfolders"
+        },
+        {
+          "text": "All 3 raw files exist in correct date subfolders",
+          "passed": true,
+          "evidence": "All 3 files correctly placed"
+        },
+        {
+          "text": "wiki link uses [[raw/2024-01-15/machine-learning-basics]] (new format)",
+          "passed": true,
+          "evidence": "Baseline rewrote the wiki link"
+        },
+        {
+          "text": "log.md has a RESTRUCTURE entry",
+          "passed": false,
+          "evidence": "Baseline did not add a RESTRUCTURE log entry"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5833,
+        "stddev": 0.5204,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.42",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

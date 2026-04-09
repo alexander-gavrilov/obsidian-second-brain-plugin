@@ -1,0 +1,293 @@
+{
+  "metadata": {
+    "skill_name": "obsidian-skills",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-09T07:50:14Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Raw file is inside a date subfolder (raw/YYYY-MM-DD/), not flat in raw/",
+          "passed": true,
+          "evidence": "raw/2026-04-09/deep-work-cal-newport.md created in date subfolder"
+        },
+        {
+          "text": "No file exists at raw/2026-04-09-*.md (old flat format)",
+          "passed": true,
+          "evidence": "No flat files exist in raw/ root"
+        },
+        {
+          "text": "Sources links in wiki pages use [[raw/YYYY-MM-DD/title]] not [[raw/YYYY-MM-DD-title]]",
+          "passed": true,
+          "evidence": "Both wiki pages: Sources: [[raw/2026-04-09/deep-work-cal-newport]]"
+        },
+        {
+          "text": "log.md entry references raw/YYYY-MM-DD/title not raw/YYYY-MM-DD-title",
+          "passed": true,
+          "evidence": "log.md: 'created raw/2026-04-09/deep-work-cal-newport'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "raw/2026-04-09/ directory created (date-folder, not flat)",
+          "passed": true,
+          "evidence": "Skill created raw/2026-04-09/ and placed companion .md inside despite old schema.md describing flat format"
+        },
+        {
+          "text": "A .md file exists inside raw/2026-04-09/",
+          "passed": true,
+          "evidence": "raw/2026-04-09/system-design-whiteboard.md created"
+        },
+        {
+          "text": "The raw .md file references the image",
+          "passed": true,
+          "evidence": "Companion note: ![Whiteboard](whiteboard-2026-04-09.png)"
+        },
+        {
+          "text": "Sources link uses [[raw/YYYY-MM-DD/title]] (new format)",
+          "passed": true,
+          "evidence": "wiki/learning/kafka.md Sources: [[raw/2026-04-09/system-design-whiteboard]]"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No .md files remain directly in raw/",
+          "passed": true,
+          "evidence": "All 3 flat files moved to date subfolders"
+        },
+        {
+          "text": "All 3 raw files exist in correct date subfolders",
+          "passed": true,
+          "evidence": "raw/2024-01-15/ and raw/2024-03-20/ contain all 3 files"
+        },
+        {
+          "text": "wiki link uses [[raw/2024-01-15/machine-learning-basics]] (new format)",
+          "passed": true,
+          "evidence": "Link rewritten correctly in wiki/learning/machine-learning.md"
+        },
+        {
+          "text": "log.md has a RESTRUCTURE entry",
+          "passed": true,
+          "evidence": "'- RESTRUCTURE: migrated 3 raw files to date-folder layout, updated 1 link across 1 wiki page'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Raw file is inside a date subfolder (raw/YYYY-MM-DD/), not flat in raw/",
+          "passed": true,
+          "evidence": "Baseline read new schema.md and followed date-folder convention: raw/2026-04-09/deep-work-cal-newport.md"
+        },
+        {
+          "text": "No file exists at raw/2026-04-09-*.md (old flat format)",
+          "passed": true,
+          "evidence": "No flat files in raw/ root"
+        },
+        {
+          "text": "Sources links in wiki pages use [[raw/YYYY-MM-DD/title]] not [[raw/YYYY-MM-DD-title]]",
+          "passed": true,
+          "evidence": "wiki/people/cal-newport.md Sources: [[raw/2026-04-09/deep-work-cal-newport]]"
+        },
+        {
+          "text": "log.md entry references raw/YYYY-MM-DD/title not raw/YYYY-MM-DD-title",
+          "passed": true,
+          "evidence": "log.md entry uses raw/2026-04-09/deep-work-cal-newport"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "raw/2026-04-09/ directory created (date-folder, not flat)",
+          "passed": false,
+          "evidence": "Baseline followed old schema.md: created raw/2026-04-09-system-design-whiteboard.md (flat format, no date subfolder)"
+        },
+        {
+          "text": "A .md file exists inside raw/2026-04-09/",
+          "passed": false,
+          "evidence": "No raw/2026-04-09/ directory was created at all"
+        },
+        {
+          "text": "The raw .md file references the image",
+          "passed": true,
+          "evidence": "Flat raw file references /tmp/whiteboard-2026-04-09.png"
+        },
+        {
+          "text": "Sources link uses [[raw/YYYY-MM-DD/title]] (new format)",
+          "passed": false,
+          "evidence": "Would produce [[raw/2026-04-09-system-design-whiteboard]] (old flat format)"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No .md files remain directly in raw/",
+          "passed": true,
+          "evidence": "All 3 flat files moved to date subfolders"
+        },
+        {
+          "text": "All 3 raw files exist in correct date subfolders",
+          "passed": true,
+          "evidence": "raw/2024-01-15/ and raw/2024-03-20/ contain all 3 files"
+        },
+        {
+          "text": "wiki link uses [[raw/2024-01-15/machine-learning-basics]] (new format)",
+          "passed": true,
+          "evidence": "Link rewritten correctly"
+        },
+        {
+          "text": "log.md has a RESTRUCTURE entry",
+          "passed": false,
+          "evidence": "Baseline did not add a RESTRUCTURE log entry \u2014 skipped without explicit skill guidance"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6667,
+        "stddev": 0.3819,
+        "min": 0.25,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.33",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}
