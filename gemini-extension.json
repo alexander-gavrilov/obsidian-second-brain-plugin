@@ -1,0 +1,37 @@
+{
+  "name": "obsidian-second-brain",
+  "version": "1.0.0",
+  "description": "Obsidian vault skills for Gemini CLI — ingest, query, lint, and migrate notes in any vault",
+  "author": { "name": "alexander-gavrilov" },
+  "homepage": "https://github.com/alexander-gavrilov/obsidian-second-brain-plugin",
+  "repository": "https://github.com/alexander-gavrilov/obsidian-second-brain-plugin",
+  "license": "MIT",
+  "keywords": ["obsidian", "notes", "knowledge-base", "second-brain", "pkm"],
+  "contextFileName": "GEMINI.md",
+  "skills": {
+    "obsidian-ingest": {
+      "description": "Process and ingest raw content into an Obsidian knowledge vault. Use this skill whenever the user shares something to save, file, or remember — URLs, articles, pasted text, ideas, notes, or file paths. Trigger on phrases like \"ingest this\", \"save this to my vault\", \"add this to my brain\", \"file this\", \"remember this\", \"add a note about\", \"I want to keep this\", or when the user simply pastes a URL or chunk of text and seems to want it stored.",
+      "path": "skills/obsidian-ingest/SKILL.md"
+    },
+    "obsidian-query": {
+      "description": "Query an Obsidian knowledge vault to answer questions from stored knowledge. Use this skill when the user asks about something they might have saved, wants to recall information, or asks \"what do I know about X\", \"find my notes on X\", \"do I have anything about X\", \"remind me about X\", \"what did I save about X\".",
+      "path": "skills/obsidian-query/SKILL.md"
+    },
+    "obsidian-lint": {
+      "description": "Run a health check on an Obsidian knowledge vault. Use this skill when the user asks to lint, audit, clean up, or check the vault. Trigger on phrases like \"lint the vault\", \"check vault health\", \"audit my notes\", \"find orphaned pages\", \"clean up my brain\".",
+      "path": "skills/obsidian-lint/SKILL.md"
+    },
+    "obsidian-migrate": {
+      "description": "Migrate notes from Google Keep (or other external sources) into an Obsidian knowledge vault. Use this skill when the user wants to import, migrate, or bring in notes from Google Keep, a JSON export, or another external note app.",
+      "path": "skills/obsidian-migrate/SKILL.md"
+    },
+    "obsidian-init": {
+      "description": "Initialize a new Obsidian knowledge vault with the second-brain structure. Use this skill when the user wants to set up a new vault, scaffold a fresh knowledge base, or prepare a directory for use with the obsidian skills.",
+      "path": "skills/obsidian-init/SKILL.md"
+    },
+    "obsidian-restructure": {
+      "description": "Migrate an existing Obsidian vault from the old flat raw/ structure to the new date-folder structure. Use this skill when the user wants to restructure an existing vault or upgrade to the new raw folder layout.",
+      "path": "skills/obsidian-restructure/SKILL.md"
+    }
+  }
+}

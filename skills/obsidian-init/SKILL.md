@@ -58,7 +58,7 @@ This file is the instruction manual for this vault. Any LLM working on this vaul
 ├── schema.md       ← this file; read before doing anything
 ├── index.md        ← content catalog organized by category
 ├── log.md          ← append-only chronological activity log
-├── raw/            ← immutable raw inputs, never edited after creation
+├── raw/            ← immutable raw inputs organized by date (raw/YYYY-MM-DD/)
 └── wiki/           ← living knowledge pages, LLM-maintained
     ├── <category1>/
     ├── <category2>/
@@ -67,8 +67,9 @@ This file is the instruction manual for this vault. Any LLM working on this vaul
 
 ## Raw Notes (`raw/`)
 
-- One file per input (article, idea, conversation, clipping, etc.)
-- Named: `YYYY-MM-DD-short-title.md`
+- Organized by date: `raw/YYYY-MM-DD/<short-title>.md`
+- One folder per day; each file within is one input (article, idea, clipping, etc.)
+- Media files (images, PDFs, audio, video) live in the same date folder alongside their `.md` companion
 - Never edited after creation — they are the source of truth
 - Front matter:
   \`\`\`
@@ -103,8 +104,8 @@ This file is the instruction manual for this vault. Any LLM working on this vaul
 ## Operations
 
 ### Ingest
-When given a raw input (article, note, idea):
-1. Create a file in `raw/` with today's date and a short title
+When given a raw input (article, note, idea, or media file):
+1. Create `raw/YYYY-MM-DD/` for today's date and place the file inside it
 2. Identify entities mentioned (people, concepts, projects, places)
 3. Create or update the relevant wiki pages
 4. Add a link to the raw source in each updated wiki page

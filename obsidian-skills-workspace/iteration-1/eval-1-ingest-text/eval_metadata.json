@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "ingest-text-note",
+  "prompt": "Save this to my vault:\n\nTitle: Why Deep Work Matters\n\nDeep work, a concept coined by Cal Newport, refers to the ability to focus without distraction on cognitively demanding tasks. Newport argues that deep work is becoming increasingly rare but increasingly valuable in the knowledge economy. Key practices: time-blocking your calendar, eliminating social media during work hours, and building a shutdown ritual. His book 'Deep Work' is the definitive guide. I want to get better at this in 2026.",
+  "assertions": [
+    {"id": "raw-in-date-folder", "text": "Raw file is inside a date subfolder (raw/YYYY-MM-DD/), not flat in raw/"},
+    {"id": "no-flat-raw-file", "text": "No file exists at raw/2026-04-09-*.md (old flat format)"},
+    {"id": "wiki-link-uses-new-format", "text": "Sources links in wiki pages use [[raw/YYYY-MM-DD/title]] not [[raw/YYYY-MM-DD-title]]"},
+    {"id": "log-uses-new-format", "text": "log.md entry references raw/YYYY-MM-DD/title not raw/YYYY-MM-DD-title"}
+  ]
+}

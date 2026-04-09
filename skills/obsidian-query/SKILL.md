@@ -21,7 +21,7 @@ Grep pattern in wiki/ directory
 
 **Search by likely page location** — if the question is about a person, check `wiki/people/`; a book, check `wiki/learning/`; etc.
 
-**Search raw notes** if wiki pages come up empty — the user may have ingested something without it being fully processed into the wiki.
+**Search raw notes** if wiki pages come up empty — the user may have ingested something without it being fully processed into the wiki. Raw notes live under `raw/YYYY-MM-DD/` folders; use `Grep pattern in raw/` or `Glob: raw/**/*.md` to search across all dates.
 
 Cast a wide net at first, then narrow. A question about "my gym routine" might be in `wiki/health/`, tagged in a raw note, or mentioned on a project page.
 

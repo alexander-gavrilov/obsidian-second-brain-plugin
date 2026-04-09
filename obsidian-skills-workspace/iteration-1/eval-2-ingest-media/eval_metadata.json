@@ -1,0 +1,10 @@
+{
+  "eval_id": 2,
+  "eval_name": "ingest-with-media",
+  "prompt": "Save this to my vault. I took a photo of a whiteboard session from today's system design meeting. The image is at /tmp/whiteboard-2026-04-09.png. The session covered microservices architecture: we decided to split our monolith into three services — auth, payments, and notifications. Each service owns its own database. We'll use Kafka for async messaging between them.",
+  "assertions": [
+    {"id": "raw-date-folder-created", "text": "raw/2026-04-09/ directory created"},
+    {"id": "companion-md-in-date-folder", "text": "A .md file exists inside raw/2026-04-09/ (companion note for the media)"},
+    {"id": "media-or-reference-mentioned", "text": "The raw .md file references the image path or file name"}
+  ]
+}

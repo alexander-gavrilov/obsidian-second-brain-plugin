@@ -1,0 +1,76 @@
+{
+  "skill_name": "obsidian-skills",
+  "evals": [
+    {
+      "id": 1,
+      "name": "ingest-text-note",
+      "prompt": "Save this to my vault:\n\nTitle: Why Deep Work Matters\n\nDeep work, a concept coined by Cal Newport, refers to the ability to focus without distraction on cognitively demanding tasks. Newport argues that deep work is becoming increasingly rare but increasingly valuable in the knowledge economy. Key practices: time-blocking your calendar, eliminating social media during work hours, and building a shutdown ritual. His book 'Deep Work' is the definitive guide. I want to get better at this in 2026.",
+      "expected_output": "Raw file created at raw/2026-04-09/why-deep-work-matters.md (date-folder format, NOT raw/2026-04-09-why-deep-work-matters.md). Wiki page created for Cal Newport and/or deep-work concept. Sources link in wiki uses [[raw/2026-04-09/why-deep-work-matters]] format.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "raw-in-date-folder",
+          "description": "Raw file is inside a date subfolder (raw/YYYY-MM-DD/), not flat in raw/"
+        },
+        {
+          "id": "no-flat-raw-file",
+          "description": "No file exists at raw/2026-04-09-*.md (old flat format)"
+        },
+        {
+          "id": "wiki-link-uses-new-format",
+          "description": "Sources links in wiki pages use [[raw/YYYY-MM-DD/title]] not [[raw/YYYY-MM-DD-title]]"
+        },
+        {
+          "id": "log-uses-new-format",
+          "description": "log.md entry references raw/YYYY-MM-DD/title not raw/YYYY-MM-DD-title"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "ingest-with-media",
+      "prompt": "Save this to my vault. I took a photo of a whiteboard session from today's system design meeting. The image is at /tmp/whiteboard-2026-04-09.png. The session covered microservices architecture: we decided to split our monolith into three services — auth, payments, and notifications. Each service owns its own database. We'll use Kafka for async messaging between them.",
+      "expected_output": "Raw folder raw/2026-04-09/ created. A companion .md file (e.g. whiteboard-system-design.md) created inside it with front matter referencing the image. Wiki page created for microservices or system design concept.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "raw-date-folder-created",
+          "description": "raw/2026-04-09/ directory created"
+        },
+        {
+          "id": "companion-md-in-date-folder",
+          "description": "A .md file exists inside raw/2026-04-09/ (companion note for the media)"
+        },
+        {
+          "id": "media-or-reference-mentioned",
+          "description": "The raw .md file references the image path or file name"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "restructure-old-vault",
+      "prompt": "Restructure my vault's raw folder to the new date-folder format.",
+      "expected_output": "Files moved from raw/2024-01-15-machine-learning-basics.md to raw/2024-01-15/machine-learning-basics.md, raw/2024-01-15-python-tips.md to raw/2024-01-15/python-tips.md, raw/2024-03-20-coffee-shop-recommendations.md to raw/2024-03-20/coffee-shop-recommendations.md. Old flat files no longer exist. Wiki link [[raw/2024-01-15-machine-learning-basics]] rewritten to [[raw/2024-01-15/machine-learning-basics]].",
+      "files": [],
+      "assertions": [
+        {
+          "id": "flat-files-removed",
+          "description": "No .md files remain directly in raw/ (raw/*.md is empty)"
+        },
+        {
+          "id": "files-in-date-folders",
+          "description": "All 3 raw files exist in their correct date subfolders"
+        },
+        {
+          "id": "old-wiki-links-rewritten",
+          "description": "wiki/learning/machine-learning.md no longer contains [[raw/2024-01-15-machine-learning-basics]], uses [[raw/2024-01-15/machine-learning-basics]] instead"
+        },
+        {
+          "id": "log-entry-added",
+          "description": "log.md has a RESTRUCTURE entry"
+        }
+      ]
+    }
+  ]
+}
