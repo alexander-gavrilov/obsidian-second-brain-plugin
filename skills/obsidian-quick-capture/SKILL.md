@@ -26,13 +26,15 @@ Check whether `input/YYYY-MM-DD.md` exists for today's date:
 
 This runs once per day, before the first capture is written. It has two parts: a background catch-up and a morning briefing.
 
-### 2a: Trigger background ingest for yesterday (if needed)
+### 2a: Trigger background ingest for all unprocessed days
 
-Get yesterday's date (YYYY-MM-DD). Then:
+Scan for every input file that hasn't been ingested yet:
 
-1. Check `log.md` for a line matching `## YYYY-MM-DD` for yesterday. If found, check whether there are any `- QUICK-CAPTURE:` or `- INGEST:` lines under it.
-2. Check whether `input/YYYY-MM-DD-yesterday.md` exists (e.g. `input/2026-04-19.md`).
-3. If yesterday's input file **exists** but there is **no INGEST entry in log.md for yesterday**: the day was not fully processed. Spawn a background agent (see below) to process it.
+1. Glob `input/YYYY-MM-DD.md` files (exclude `input/processed/`). For each file found, extract the date from the filename.
+2. Read `log.md` once. For each date, check whether a `- BATCH-INGEST:` or `- INGEST:` line appears under its `## YYYY-MM-DD` header.
+3. Collect all dates where an input file **exists** but the log has **no INGEST entry** for that date. Skip today — only process past days.
+
+If there are unprocessed days, spawn a **single** background agent to process all of them sequentially:
 
 **How to spawn the background ingest:**
 
@@ -40,35 +42,34 @@ Read the obsidian-ingest skill at `~/.claude/plugins/marketplaces/obsidian-secon
 
 ```
 Agent(
-  description: "Background ingest for YYYY-MM-DD",
+  description: "Background ingest for <N> unprocessed days",
   run_in_background: true,
   prompt: """
 Working directory: <vault_absolute_path>
 Today's date for logging purposes: <today's date>
 
-You are processing unprocessed quick-captures from <yesterday's date>.
+Process all unprocessed quick-capture input files in order (oldest first):
+<list each unprocessed file: input/YYYY-MM-DD.md>
 
 Read and follow these instructions exactly:
 <full contents of obsidian-ingest SKILL.md>
 
-Process the file: input/<yesterday>.md
+For each file:
+  Parse each entry (separated by `---`, starting with `### HH:MM —`).
+  For each entry run the full ingest pipeline: create raw file, extract entities,
+  update wiki pages, update index.md. Fetch URLs if the content is sparse.
 
-Parse each entry in the file (they are separated by `---` and start with `### HH:MM —`).
-For each entry:
-- Treat it as the content to ingest (the src line is the source, tags line gives hints)
-- Follow the full ingest pipeline: create raw file, extract entities, update wiki pages, update index.md
-- If the src is a URL and you can fetch it, do so; otherwise use the captured text as-is
-
-After all entries are processed:
-- Append a `- BATCH-INGEST: processed input/<yesterday>.md → <N> items` line to log.md under the <today's date> header (create the header if it doesn't exist)
-- Move input/<yesterday>.md to input/processed/<yesterday>.md using Bash: mv input/<yesterday>.md input/processed/<yesterday>.md
+After processing each file:
+  - Append `- BATCH-INGEST: processed input/<date>.md → <N> items` to log.md
+    under the <today's date> header (create it once if it doesn't exist)
+  - Move the file: mv input/<date>.md input/processed/<date>.md
 
 Work autonomously — no user interaction needed.
 """
 )
 ```
 
-Tell the user: "Running yesterday's captures in the background — I'll notify you when done."
+Tell the user how many days are queued: "Running background ingest for N unprocessed day(s) — I'll notify you when done." If nothing is unprocessed, skip silently.
 
 ### 2b: Generate the morning briefing
 
@@ -130,7 +131,7 @@ Append this entry block to the file:
 ---
 ```
 
-Use the current time in HH:MM format (24h). Leave a blank line before `### HH:MM` if the file already has content.
+Get the actual current time by running `date +%H:%M` via Bash. Use that value as the timestamp. Leave a blank line before `### HH:MM` if the file already has content.
 
 ---
 
@@ -148,5 +149,5 @@ If the morning briefing was shown (Step 2b), the confirmation can be even shorte
 
 - The user waited less than 5 seconds
 - The entry is in `input/YYYY-MM-DD.md` with correct format
-- If it was the first capture of the day: background ingest was triggered for yesterday (if needed) and the briefing was relevant and actionable
+- If it was the first capture of the day: background ingest was triggered for all unprocessed days (not just yesterday) and the briefing was relevant and actionable
 - No wiki files were touched, no entity extraction was done
