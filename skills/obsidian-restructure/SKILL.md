@@ -6,6 +6,21 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 
 # Obsidian Restructure
 
+## Step 0: Resolve vault
+
+1. Check if a local vault exists: does `schema.md` exist in the current working directory?
+2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+
+**Decision:**
+- Local present + global configured → ask: *"Restructure the global vault (at `<global_path>`) or the local one (current directory)?"*
+- Local present + no global configured → use local, no prompt
+- No local + global configured → use global path silently
+- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+
+All file operations below use the resolved vault root.
+
+---
+
 Migrate an existing vault's `raw/` folder from the old flat layout to the new date-folder layout, and update all internal links accordingly.
 
 **Old format:** `raw/YYYY-MM-DD-short-title.md`

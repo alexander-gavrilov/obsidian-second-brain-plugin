@@ -6,7 +6,22 @@ tools: Read, Glob, Grep, Write, Edit
 
 # Obsidian Query
 
-Answer questions using the Obsidian vault rooted at the current working directory.
+## Step 0: Resolve vault
+
+1. Check if a local vault exists: does `schema.md` exist in the current working directory?
+2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+
+**Decision:**
+- Local present + global configured → ask: *"Query globally (at `<global_path>`) or locally (current directory)?"*
+- Local present + no global configured → use local, no prompt
+- No local + global configured → use global path silently
+- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+
+All file operations below use the resolved vault root.
+
+---
+
+Answer questions using the Obsidian vault.
 
 Always read `schema.md` first to understand the vault structure.
 

@@ -6,9 +6,32 @@ tools: Read, Write, Bash, Glob
 
 # Obsidian Init
 
-Set up a fresh Obsidian second-brain vault in the current working directory.
+Set up a fresh Obsidian second-brain vault.
 
 The vault structure follows the LLM Wiki pattern: raw inputs are preserved as-is, then processed into a living, interlinked wiki. The `schema.md` you create here is the instruction manual for the vault — every other skill reads it first.
+
+## Step 0: Choose init mode
+
+Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to check whether a global vault is already configured.
+
+Ask the user:
+
+> "Initialize a **local vault** here (in the current directory — useful for project-specific notes) or set up your **global vault** (a single personal vault used across all projects)?"
+
+**Local mode**: proceed with the current working directory as the vault root. Skip to Step 1.
+
+**Global mode**:
+- If a global vault is already configured at `<path>`: confirm *"Your global vault is already at `<path>`. Re-initialize it? This will not delete existing content, but will rewrite `schema.md`."*
+- If no global is configured: ask for the path — *"Where should your global vault live? Enter an absolute path (it can be a new or existing directory)."*
+  - If the directory doesn't exist: create it with `mkdir -p <path>`
+  - Set this as the vault root for all steps below
+  - After completing init, save the path to `~/.claude/obsidian-second-brain-config.json`:
+    ```json
+    { "global_vault_path": "<absolute_path>" }
+    ```
+  - Confirm: *"Global vault initialized at `<path>` and saved as your default."*
+
+---
 
 ## Step 1: Interview the user
 

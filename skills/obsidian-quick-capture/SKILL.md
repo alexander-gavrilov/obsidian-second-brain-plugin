@@ -8,7 +8,24 @@ tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 
 Capture content fast into `input/YYYY-MM-DD.md`. No entity extraction, no wiki updates — that happens later in the background. The goal is to get content recorded in under 5 seconds of wait time.
 
-Always use the vault rooted at the current working directory. Read `schema.md` only if you haven't already in this session.
+## Step 0: Resolve vault
+
+Resolve this once per session — don't ask again mid-session.
+
+1. Check if a local vault exists: does `schema.md` exist in the current working directory?
+2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+
+**Decision:**
+- Local present + global configured → ask once: *"Capture to global vault (at `<global_path>`) or local (current directory)?"*
+- Local present + no global configured → use local, no prompt
+- No local + global configured → use global path silently
+- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+
+All file operations below use the resolved vault root.
+
+---
+
+Read `schema.md` only if you haven't already in this session.
 
 > **Hard constraint**: This skill writes to exactly ONE file: `input/YYYY-MM-DD.md`. Never create or modify anything in `raw/`, `wiki/`, `index.md`, or `log.md`. Reading `wiki/projects/` for the morning briefing is fine — but reading is not a trigger to write. If you notice an entity or concept worth tracking, do not create a wiki page. Just capture the content and let the background ingest handle it later.
 
