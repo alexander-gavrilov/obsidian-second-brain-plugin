@@ -1,0 +1,46 @@
+{
+  "skill_name": "obsidian-quick-capture",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Quick capture this: https://anthropic.com/research/claude-character — their new post about Claude's character and identity",
+      "expected_output": "A structured entry is appended to input/2026-04-20.md using the template (### HH:MM — title, src, tags, brief content). No wiki pages are created. Confirmation is returned in under one sentence. No URL fetching happens.",
+      "files": [],
+      "assertions": [
+        "An entry was appended to input/2026-04-20.md",
+        "The entry starts with ### followed by a time and title",
+        "The src line contains the URL",
+        "No wiki/ files were created or modified",
+        "No raw/ files were created",
+        "The confirmation message is one sentence or less"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Note this down: Platform Innovation team agreed to split the Starter Pack milestone into two phases — MVP by end of April, polish by mid-May. Viktor confirmed.",
+      "expected_output": "Entry appended to input/2026-04-20.md with src: note, relevant tags (platform-innovation, starter-pack), and the note content verbatim. No wiki updates.",
+      "files": [],
+      "assertions": [
+        "An entry was appended to input/2026-04-20.md",
+        "The entry includes the key facts (MVP, April, Viktor)",
+        "src is set to note or personal",
+        "tags include something related to platform-innovation or starter-pack",
+        "No wiki/ files were created or modified",
+        "No raw/ files were created"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Good morning! Quick capture: https://newsletter.pragmaticengineer.com/p/ai-agents-2025 — interesting read on AI agent architectures",
+      "expected_output": "Since this is the first capture of the day (input/2026-04-20.md does not exist), the skill should: (1) check log.md for 2026-04-19 — since there IS an entry for 2026-04-17 but nothing for 2026-04-18 or 2026-04-19, check input/ for those dates; (2) generate a morning briefing covering active projects and suggestions; (3) append the URL capture entry; (4) confirm briefly. Background agent may be spawned if unprocessed input files exist for those days.",
+      "files": [],
+      "assertions": [
+        "The daily briefing is shown with active projects section",
+        "The daily briefing includes suggested focus items",
+        "An entry for the URL is appended to input/2026-04-20.md",
+        "The response time is fast — no URL was fetched",
+        "The confirmation is concise (not re-explaining everything)"
+      ]
+    }
+  ]
+}
