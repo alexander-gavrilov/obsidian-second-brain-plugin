@@ -166,7 +166,7 @@ Append-only. Each entry:
 ## YYYY-MM-DD
 - ACTION: description
 \`\`\`
-Actions: `INGEST`, `CREATE`, `UPDATE`, `QUERY`, `LINT`, `MIGRATE`
+Actions: `INGEST`, `CREATE`, `UPDATE`, `QUERY`, `LINT`, `MIGRATE`, `TEMPLATE`
 ```
 
 Adapt the Purpose section and Categories table to the user's actual answers. Keep everything else consistent — the other skills depend on this exact structure.
@@ -203,11 +203,40 @@ Append-only activity record. See [[schema]] for format.
 
 Use today's actual date for the first log entry.
 
+## Step 6: Scaffold the daily-note template
+
+`obsidian-daily-note` and `obsidian-quick-capture` render `templates/raw-note.md`.
+Scaffold it so those skills work in this vault.
+
+Resolve the plugin's default template (prefer the installed plugin, fall back to a vault-local copy):
+
+```bash
+DEFAULT_TPL=~/.claude/plugins/marketplaces/obsidian-second-brain/templates/raw-note.md
+# dev fallback when running from a clone of the plugin repo:
+[ -f "$DEFAULT_TPL" ] || DEFAULT_TPL=templates/raw-note.md
+```
+
+If neither path exists (unusual), tell the user the plugin default template could not be located and skip template scaffolding rather than writing a broken file.
+
+Then:
+
+- **No `templates/raw-note.md` in this vault** → create `templates/` and copy the default in. No prompt.
+- **Existing `templates/raw-note.md` identical to the default** (`diff -q` reports no difference) → do nothing, proceed silently.
+- **Existing `templates/raw-note.md` differs from the default** → do NOT overwrite silently. Ask the user to choose:
+  1. **Keep existing** (default) — leave the vault's file untouched.
+  2. **Use plugin default** — back up the current file to `templates/raw-note.md.bak`, then overwrite with the default.
+  3. **Interactive hybrid** — read both files, propose a merged template (typically: keep the user's Agenda block and section layout, adjust the routine checklist for this vault), show the proposed result, and on approval back up the original to `templates/raw-note.md.bak` and write the merge.
+
+After acting, append a `- TEMPLATE: <action>` line to `log.md` under today's `## YYYY-MM-DD` header (create the header if absent), where `<action>` is one of `created default`, `kept existing`, `replaced with default (backup: raw-note.md.bak)`, or `wrote hybrid (backup: raw-note.md.bak)`.
+
+The identical-template no-op branch and any run where template scaffolding was skipped (no default found) write no `- TEMPLATE:` line — only the four acting cases above are logged.
+
 ## What good looks like
 
 The user ends up with a vault that:
 - Has a `schema.md` they could hand to any LLM and it would understand the vault
 - Has directories that match their actual use case (no useless empty folders)
 - Is immediately ready for `/ingest`, `/query`, `/lint`, and `/migrate` — no further setup needed
+- Has a working `templates/raw-note.md` so `obsidian-daily-note` / `obsidian-quick-capture` can scaffold daily notes; an existing template was never overwritten without a `.bak` backup and explicit choice
 
 If the user already has some content in the directory (existing `.md` files), don't overwrite anything. Instead, adapt the schema to match what's already there and note what you found.
