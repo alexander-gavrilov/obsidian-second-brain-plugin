@@ -46,6 +46,9 @@ Migrate an existing vault from the old flat `raw/` layout (`raw/YYYY-MM-DD-title
 
 **Trigger:** "restructure raw folder", "upgrade my vault", "convert to date folders".
 
+### `obsidian-daily-note`
+Scaffold a daily note at `input/YYYY-MM-DD.md` from `templates/raw-note.md`, rendered the way Obsidian's Templater would — usable from the terminal. Carries unfinished tasks forward from the previous daily note and can recollect older orphaned tasks.
+
 ## Vault conventions
 
 Each skill reads `schema.md` in the vault root first. Create this file to describe your folder structure, front matter formats, and naming conventions — the skills adapt to it.

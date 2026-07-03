@@ -10,6 +10,7 @@ This extension provides skills for managing an Obsidian knowledge vault.
 - **obsidian-migrate** — import notes from Google Keep or other export formats
 - **obsidian-init** — scaffold a fresh vault with the second-brain structure
 - **obsidian-restructure** — upgrade vault from flat raw/ layout to date-subfolder layout
+- **obsidian-daily-note** — scaffold a daily note from the vault template, carrying unfinished tasks forward
 
 ## Vault conventions
 
