@@ -21,6 +21,21 @@ Create a daily note at `input/YYYY-MM-DD.md` that looks exactly like one Obsidia
 Templater plugin would have produced — same source of truth (`templates/raw-note.md`),
 rendered deterministically so it works from the terminal where Templater never runs.
 
+## Step 0: Resolve vault
+
+Resolve this once per session — don't ask again mid-session.
+
+1. Check if a local vault exists: does `schema.md` exist in the current working directory?
+2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+
+**Decision:**
+- Local present + global configured → ask once: *"Create the daily note in the global vault (at `<global_path>`) or the local one (current directory)?"*
+- Local present + no global configured → use local, no prompt
+- No local + global configured → use global path silently
+- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+
+Pass the resolved vault root to the script via `--vault` on every invocation below (the script otherwise searches upward from the current directory, which is wrong in global-vault mode).
+
 ## When this matters
 
 Obsidian's Templater only fires when a note is created *inside* Obsidian (the Calendar
@@ -40,7 +55,7 @@ Resolve the script path (prefer the installed plugin, fall back to a vault-local
 ```bash
 SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py
 [ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py
-python3 "$SCRIPT" [DATE]
+python3 "$SCRIPT" [DATE] --vault "<resolved vault root>"
 ```
 
 `DATE` is optional and flexible:
@@ -58,6 +73,8 @@ python3 "$SCRIPT" [DATE]
 | "make a daily note for Saturday" | `SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py; [ -f "$SCRIPT" ] \|\| SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py; python3 "$SCRIPT" saturday` |
 | "set up tomorrow's journal" | `SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py; [ -f "$SCRIPT" ] \|\| SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py; python3 "$SCRIPT" tomorrow` |
 | "new daily note for 2026-07-01" | `SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py; [ -f "$SCRIPT" ] \|\| SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py; python3 "$SCRIPT" 2026-07-01` |
+
+Every example assumes `--vault "<resolved vault root>"` is appended (omitted above for brevity); it is required whenever the command is not run from inside the target vault.
 
 ## What the script guarantees
 
@@ -90,7 +107,7 @@ On creation the script carries forward every unfinished task (`- [ ]`, not
 `[status:: canceled]`) from the **most recent prior daily note** — open and
 postponed both move; done and canceled stay behind. Duplicates (a task already
 typed into the new note) are skipped. This runs **only on the script/agent
-path**: a note created inside Obsidian gets an empty Tasks section.
+path**: a note created inside Obsidian gets an empty Tasks section. Carry-over reads only the lines between `## ✅ Tasks` and the next `## ` heading, so on weekdays the `## ✅ Daily routine` sibling heading bounds it — type real tasks under `## ✅ Tasks` (above the routine), not under the routine heading, or they won't carry forward.
 
 ### Recollecting older tasks
 

@@ -18,6 +18,7 @@ block simply shows "ICS plugin not enabled."
 ```dataviewjs
 const ics = app.plugins.getPlugin("ics");
 const date = dv.current().date?.toFormat("yyyy-MM-dd");
+// Meeting-platform detection for the "online" badge — NOT work coupling; safe to keep in the neutral default.
 const ONLINE = /teams meeting|microsoft teams|zoom|google meet|skype/i;
 const SHOW_CANCELLED = false; // set true to keep cancelled meetings (struck through)
 const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));

@@ -125,8 +125,10 @@ When `input/YYYY-MM-DD.md` does not exist yet, **do not create a bare file**. In
 ```bash
 SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py
 [ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py
-python3 "$SCRIPT" <today>
+python3 "$SCRIPT" <today> --vault "<resolved vault root>"
 ```
+
+Here `<resolved vault root>` is the vault path resolved in Step 0 — always pass it explicitly so scaffolding targets the resolved (possibly global) vault, not the current directory.
 
 This renders every template section (`## 📅 Agenda`, `## ✅ Tasks`, `## 📝 Meeting notes`, `## 📥 Captures`) exactly as Obsidian's Templater would, and as a bonus carries forward unfinished tasks from the most recent prior daily note. This is the sanctioned way to create the daily input file — see the `obsidian-daily-note` skill for details. If the script reports the template is missing, tell the user to run `obsidian-init` (do not hand-write a bare file).
 
