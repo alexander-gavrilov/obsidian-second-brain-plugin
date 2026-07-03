@@ -1,6 +1,7 @@
 ---
 name: obsidian-quick-capture
 description: Fast, non-blocking capture of content into the Obsidian vault's daily input file. Use this skill when the user wants to save something quickly without waiting — URLs, ideas, notes, meeting bullets, or anything they say like "capture this", "note this", "quick save", "add to my inbox", "jot this down", or just pastes a link or text and says "save for later". Strongly prefer this over obsidian-ingest when the user is in the middle of something and just wants to capture without being blocked. Also trigger when the user starts their day or says something like "let's get started" or "morning" — in that case, run the first-capture-of-day briefing even with no content.
+context: fork
 tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 ---
 
