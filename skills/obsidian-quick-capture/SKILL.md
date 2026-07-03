@@ -27,7 +27,7 @@ All file operations below use the resolved vault root.
 
 Read `schema.md` only if you haven't already in this session.
 
-> **Hard constraint**: This skill writes to exactly ONE file: `input/YYYY-MM-DD.md`. Never create or modify anything in `raw/`, `wiki/`, `index.md`, or `log.md`. Reading `wiki/projects/` for the morning briefing is fine — but reading is not a trigger to write. If you notice an entity or concept worth tracking, do not create a wiki page. Just capture the content and let the background ingest handle it later.
+> **Hard constraint**: This skill writes to exactly ONE file: `input/YYYY-MM-DD.md`. Never create or modify anything in `raw/`, `wiki/`, `index.md`, or `log.md`. Reading `wiki/projects/` for the morning briefing is fine — but reading is not a trigger to write. If you notice an entity or concept worth tracking, do not create a wiki page. Just capture the content and let the background ingest handle it later. Scaffolding today's note from the template via the `obsidian-daily-note` script (Step 2c) is the sanctioned way to create that one file; the script's carry-over reads of prior daily notes are reads, not writes, and do not violate this one-file constraint.
 
 ---
 
@@ -41,7 +41,7 @@ Check whether `input/YYYY-MM-DD.md` exists for today's date:
 
 ## Step 2: First-capture-of-day routine
 
-This runs once per day, before the first capture is written. It has two parts: a background catch-up and a morning briefing.
+This runs once per day, before the first capture is written. It has three parts: a background catch-up, a morning briefing, and scaffolding today's note from the template.
 
 ### 2a: Trigger background ingest for all unprocessed days
 
@@ -116,6 +116,20 @@ Then produce a **Daily Briefing** in this format:
 
 Be specific and concrete. Pull from actual content in the files, not generic advice. If a project page mentions a deadline or milestone, surface it. If log.md shows a topic ingested 10 days ago with no follow-up, note it.
 
+### 2c: Scaffold today's daily note from template
+
+This is the last sub-step of the first-capture routine — it runs after 2a and 2b, so the file is created immediately before the first entry is written.
+
+When `input/YYYY-MM-DD.md` does not exist yet, **do not create a bare file**. Instead scaffold it from the template using the `obsidian-daily-note` script. Get today's date with `date +%Y-%m-%d`, resolve the script (prefer the installed plugin, fall back to a vault-local copy), then run it from the vault root:
+
+```bash
+SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py
+[ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py
+python3 "$SCRIPT" <today>
+```
+
+This renders every template section (`## 📅 Agenda`, `## ✅ Tasks`, `## 📝 Meeting notes`, `## 📥 Captures`) exactly as Obsidian's Templater would, and as a bonus carries forward unfinished tasks from the most recent prior daily note. This is the sanctioned way to create the daily input file — see the `obsidian-daily-note` skill for details. If the script reports the template is missing, tell the user to run `obsidian-init` (do not hand-write a bare file).
+
 ---
 
 ## Step 3: Parse the input
@@ -134,7 +148,7 @@ For text content: keep it verbatim or lightly cleaned. For URLs: use any surroun
 
 ## Step 4: Append to the daily input file
 
-Create `input/YYYY-MM-DD.md` if it doesn't exist yet (no header needed — just entries).
+The file already exists — it was scaffolded from the template in Step 2c (or it existed before today's first capture). Append the entry block **under the `## 📥 Captures` heading**, not at the end of the file (the template ends `## 📝 Meeting notes` then `## 📥 Captures`, so writing to the end would land the entry in the wrong section).
 
 Append this entry block to the file:
 
@@ -148,7 +162,9 @@ Append this entry block to the file:
 ---
 ```
 
-Get the actual current time by running `date +%H:%M` via Bash. Use that value as the timestamp. Leave a blank line before `### HH:MM` if the file already has content.
+Get the actual current time by running `date +%H:%M` via Bash. Use that value as the timestamp. Leave a blank line before `### HH:MM` if the section already has content.
+
+**Legacy notes**: if a pre-existing note lacks a `## 📥 Captures` heading (e.g. an older bare file), add the heading at the end of the file first, then append the entry under it.
 
 ---
 
