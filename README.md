@@ -22,7 +22,7 @@ Save anything to your vault — URLs, pasted text, ideas, files. Fetches content
 **Trigger:** "ingest this", "save this to my vault", "remember this", or paste a URL.
 
 ### `obsidian-query`
-Answer questions from your stored knowledge. Searches wiki pages and raw notes, cites sources, and distinguishes vault knowledge from general knowledge.
+Answer questions from your stored knowledge. Searches wiki pages and raw notes, cites sources, and distinguishes vault knowledge from general knowledge. From inside a local vault it answers locally first, then offers to also search your configured global vault (toggle via config `query_offer_global_after_local`).
 
 **Trigger:** "what do I know about X", "find my notes on X", "remind me about X".
 
