@@ -51,15 +51,15 @@ If the vault has partial information and you supplement with general knowledge, 
 
 ## Step 2.5: Offer to also search the global vault
 
-This runs ONLY when Step 0 resolved the **local** vault (a local schema.md was present) and a `global_vault_path` is configured. It does NOT run when the query already used the global vault directly.
+This runs ONLY when Step 0 resolved the **local** vault (a local schema.md was present) and a `global_vault_path` is configured. It does NOT run when the query already used the global vault directly. Also skip it when the resolved local vault root is the **same path** as `global_vault_path` (you are already inside the global vault — offering to search it again would duplicate and mislabel identical results).
 
 Read the config flag `query_offer_global_after_local` from `~/.claude/obsidian-second-brain-config.json`. Treat a missing key as `true` (default on). If it is `false`, skip this step.
 
-If enabled, then — regardless of whether the local search found anything — offer:
+If enabled, then — regardless of whether the local search found anything — offer to also search the global knowledge base (phrase the offer in the user's language), e.g.:
 
-> "Поискать это же в основной базе знаний (global, at `<global_vault_path>`)?"
+> "Also search your main knowledge base (global, at `<global_vault_path>`) for this?"
 
-If the user accepts, run the same Step 1 search strategies against the global vault root and fold the findings into the answer. Always label which vault each part came from — e.g. "Из локального vault: …" and "Из основной базы (global): …" — so the two sources are never conflated.
+If the user accepts, read the global vault's `schema.md` first, then run the same Step 1 search strategies against the global vault root and fold the findings into the answer. Always label which vault each part came from — e.g. "From the local vault: …" and "From the global base: …" (in the user's language) — so the two sources are never conflated.
 
 ## Step 3: Offer to file the answer
 
