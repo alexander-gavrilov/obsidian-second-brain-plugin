@@ -52,7 +52,7 @@ Write `~/.claude/obsidian-second-brain-config.json`:
 
 Use the exact absolute path the user provided (resolve `~` to the actual home directory).
 
-Include `"query_offer_global_after_local": true` by default. If the config already exists and the user previously set this flag, preserve their existing value instead of clobbering it.
+Include `"query_offer_global_after_local": true` by default. The `true` shown in the block above is only the value for a **new** config — if the config already exists (e.g. a re-run that only changes the vault path), carry over the user's existing `query_offer_global_after_local` value instead of resetting it to `true`.
 
 Confirm: *"Global vault set to `<path>`. All obsidian skills will default to this vault when no local vault is found in the current project."*
 
@@ -60,6 +60,7 @@ Confirm: *"Global vault set to `<path>`. All obsidian skills will default to thi
 
 If the user asks to turn the cross-vault query offer on or off (e.g. "turn off cross-vault query offer", "always ask before searching global", "stop offering to search my global vault after local queries"), update only the `query_offer_global_after_local` flag:
 
+- If no config file exists yet, there is nothing to toggle — route to Step 2 to set the vault first (the flag is written with its default there).
 - Read the current config, preserving `global_vault_path`.
 - Set `query_offer_global_after_local` to `true` (offer enabled) or `false` (offer disabled) per the request.
 - Write the config back with both keys intact.
