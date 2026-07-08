@@ -12,12 +12,13 @@ tools: Read, Glob, Grep, Write, Edit
 2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
 
 **Decision:**
-- Local present + global configured → ask: *"Query globally (at `<global_path>`) or locally (current directory)?"*
+- Local present + global configured → use the **local** vault to answer, then after answering offer to also search the global vault (see Step 2.5). Do not ask up front.
 - Local present + no global configured → use local, no prompt
 - No local + global configured → use global path silently
 - No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
 
 All file operations below use the resolved vault root.
+Remember whether the resolved vault was the **local** one (a local `schema.md` was present) — Step 2.5 depends on it.
 
 ---
 
@@ -47,6 +48,18 @@ Synthesize the answer from what you find. Be clear about:
 - What you didn't find (if the vault has no relevant content, say so — don't hallucinate from general knowledge)
 
 If the vault has partial information and you supplement with general knowledge, make the distinction explicit: "Your vault says X. For context (not from your notes): Y."
+
+## Step 2.5: Offer to also search the global vault
+
+This runs ONLY when Step 0 resolved the **local** vault (a local schema.md was present) and a `global_vault_path` is configured. It does NOT run when the query already used the global vault directly.
+
+Read the config flag `query_offer_global_after_local` from `~/.claude/obsidian-second-brain-config.json`. Treat a missing key as `true` (default on). If it is `false`, skip this step.
+
+If enabled, then — regardless of whether the local search found anything — offer:
+
+> "Поискать это же в основной базе знаний (global, at `<global_vault_path>`)?"
+
+If the user accepts, run the same Step 1 search strategies against the global vault root and fold the findings into the answer. Always label which vault each part came from — e.g. "Из локального vault: …" and "Из основной базы (global): …" — so the two sources are never conflated.
 
 ## Step 3: Offer to file the answer
 
