@@ -49,6 +49,14 @@ Migrate an existing vault from the old flat `raw/` layout (`raw/YYYY-MM-DD-title
 ### `obsidian-daily-note`
 Scaffold a daily note at `input/YYYY-MM-DD.md` from `templates/raw-note.md`, rendered the way Obsidian's Templater would — usable from the terminal. Carries unfinished tasks forward from the previous daily note and can recollect older orphaned tasks.
 
+### `obsidian-park-session`
+Park the session you're in — summarizes what happened, the decisions made, and
+what to resume next into `raw/YYYY-MM-DD/session-<slug>.md`, with the session
+id, models used, working folder, and start/end times in the front matter.
+Writes the note plus one `log.md` line; wiki pages are left to `obsidian-ingest`.
+
+**Trigger:** "park this session", "wrap up this session", "I'm done for today".
+
 ## Vault conventions
 
 Each skill reads `schema.md` in the vault root first. Create this file to describe your folder structure, front matter formats, and naming conventions — the skills adapt to it.
