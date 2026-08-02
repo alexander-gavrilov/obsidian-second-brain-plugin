@@ -1,0 +1,55 @@
+{
+  "skill_name": "obsidian-park-session",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Park this session.",
+      "expected_output": "A session note is created at raw/YYYY-MM-DD/session-<slug>.md with front matter carrying session_id, models, cwd, branch, started, ended and duration, and a body with What happened / Decisions / Resume from here. One PARK line is appended to log.md. No wiki pages are created.",
+      "files": [],
+      "assertions": [
+        "A file matching raw/*/session-*.md was created",
+        "The note front matter includes session_id, models, cwd, started and ended",
+        "The note body contains a 'What happened' section",
+        "The note body contains a 'Resume from here' section",
+        "A line starting with '- PARK:' was appended to log.md",
+        "No wiki/ files were created or modified",
+        "index.md was not modified"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'm done for today, wrap up this session.",
+      "expected_output": "Same as eval 1 — the phrase 'I'm done for today' triggers parking. The summary reflects the actual work of the conversation and links relevant entities as [[wiki links]] without creating those pages.",
+      "files": [],
+      "assertions": [
+        "A file matching raw/*/session-*.md was created",
+        "The note contains at least one [[wiki link]]",
+        "No wiki/ files were created or modified",
+        "Exactly one line was appended to log.md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Park this session.",
+      "expected_output": "No transcript is available (the skill is running in an environment with no Claude Code transcripts at all, e.g. as a Gemini CLI extension). The skill still writes the session note, filling session_id, models, started, ended and duration with the literal 'unknown', and says which fields were unavailable.",
+      "files": [],
+      "assertions": [
+        "A file matching raw/*/session-*.md was created despite the missing transcript",
+        "Unavailable front matter fields carry the value 'unknown'",
+        "The confirmation mentions that some metadata was unavailable",
+        "The skill did not stop with an error"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Park yesterday's session about the database migration.",
+      "expected_output": "The skill explains that only the current session can be parked, and offers to park the current one instead. No note is written for the past session.",
+      "files": [],
+      "assertions": [
+        "The response explains only the current session can be parked",
+        "No note was written summarizing a past session",
+        "The skill offers to park the current session instead"
+      ]
+    }
+  ]
+}
