@@ -43,14 +43,12 @@ the defaults below, follow `schema.md`.
 
 ## Step 2: Collect the session metadata
 
-Run the metadata script from this skill's directory. When the plugin is
-installed that is
-`~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-park-session`;
-when running from a checkout of the plugin repo it is
-`skills/obsidian-park-session`. Use whichever exists.
+Resolve the script path (prefer the installed plugin, fall back to a checkout-local copy):
 
 ```bash
-python3 <skill_dir>/scripts/session_meta.py
+SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-park-session/scripts/session_meta.py
+[ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-park-session/scripts/session_meta.py
+python3 "$SCRIPT"
 ```
 
 With no arguments it picks the most recently modified transcript for the current
@@ -60,14 +58,14 @@ scratchpad path you were given contains it, as
 for certainty:
 
 ```bash
-python3 <skill_dir>/scripts/session_meta.py --session-id <session-id>
+python3 "$SCRIPT" --session-id <session-id>
 ```
 
 The script prints a JSON object with `session_id`, `cwd`, `git_branches`,
 `models`, `started_at`, `ended_at`, `duration`, `user_turn_count`, `title`, and
 `transcript_path`.
 
-**If the script exits non-zero or a field comes back `null`**, that is expected
+**If the script exits non-zero or a field comes back `null` or empty (`[]`)**, that is expected
 in environments without Claude Code transcripts (for example the Gemini CLI
 extension). Do not stop. Carry on with what you know — the working directory and
 today's date — and record every unavailable field as the literal `unknown`.
@@ -98,6 +96,9 @@ to dashes, punctuation dropped, roughly 3–6 words. If `title` is `null`, deriv
 the slug from the topic of your own summary. If the file already exists, append
 `-2` (then `-3`, …) rather than overwriting it.
 
+The `# <title>` heading in the note body uses the same rule: if `title` is
+`null`, use the same summary-derived phrase used for the slug, title-cased.
+
 Create the `raw/YYYY-MM-DD/` directory if it does not exist.
 
 ```markdown
@@ -119,7 +120,7 @@ duration: <duration>
 
 <narrative, with [[wiki links]] inline>
 
-## Decisions
+## Decisions (optional)
 
 <decisions and reasoning>
 

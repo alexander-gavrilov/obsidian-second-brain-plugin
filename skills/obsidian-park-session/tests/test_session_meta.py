@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 import tempfile
@@ -62,9 +63,6 @@ class TestFindTranscript(unittest.TestCase):
         self._make("-a-b", "sess-one.jsonl")
         with self.assertRaises(sm.TranscriptNotFound):
             sm.find_transcript("missing", "/a/b", self.root)
-
-
-import json
 
 
 def _write_transcript(path, records):
@@ -207,6 +205,32 @@ class TestParseTranscriptDegraded(unittest.TestCase):
         path = self.dir / "sess-4.jsonl"
         _write_transcript(path, [{"type": "mode", "mode": "normal"}])
         self.assertEqual(sm.parse_transcript(path)["session_id"], "sess-4")
+
+    def test_non_dict_message_is_skipped_not_fatal(self):
+        path = self.dir / "sess-5.jsonl"
+        _write_transcript(
+            path,
+            [
+                {"type": "user", "sessionId": "sess-5", "message": "plain string"},
+                json.loads(json.dumps(SAMPLE[3])),
+            ],
+        )
+        meta = sm.parse_transcript(path)
+        self.assertEqual(meta["session_id"], "sess-5")
+        self.assertEqual(meta["models"], ["claude-opus-5"])
+
+    def test_non_string_timestamp_is_skipped_not_fatal(self):
+        path = self.dir / "sess-6.jsonl"
+        _write_transcript(
+            path,
+            [
+                {"type": "user", "sessionId": "sess-6", "timestamp": 12345},
+                json.loads(json.dumps(SAMPLE[3])),
+            ],
+        )
+        meta = sm.parse_transcript(path)
+        self.assertEqual(meta["session_id"], "sess-6")
+        self.assertEqual(meta["started_at"], "2026-08-02T19:05:00Z")
 
 
 class TestMain(unittest.TestCase):

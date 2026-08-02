@@ -31,7 +31,7 @@
     {
       "id": 3,
       "prompt": "Park this session.",
-      "expected_output": "No transcript is available (no ~/.claude/projects entry for this working directory). The skill still writes the session note, filling session_id, models, started, ended and duration with the literal 'unknown', and says which fields were unavailable.",
+      "expected_output": "No transcript is available (the skill is running in an environment with no Claude Code transcripts at all, e.g. as a Gemini CLI extension). The skill still writes the session note, filling session_id, models, started, ended and duration with the literal 'unknown', and says which fields were unavailable.",
       "files": [],
       "assertions": [
         "A file matching raw/*/session-*.md was created despite the missing transcript",

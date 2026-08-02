@@ -77,7 +77,8 @@ def is_real_user_turn(record) -> bool:
         return False
     if record.get("isMeta") or record.get("isSidechain"):
         return False
-    content = (record.get("message") or {}).get("content")
+    message = record.get("message")
+    content = message.get("content") if isinstance(message, dict) else None
     if isinstance(content, list):
         return not any(
             isinstance(block, dict) and block.get("type") == "tool_result"
@@ -154,7 +155,7 @@ def parse_transcript(path) -> dict:
             if stamp:
                 try:
                     timestamps.append(_parse_timestamp(stamp))
-                except ValueError:
+                except (ValueError, TypeError, AttributeError):
                     pass
 
             if is_real_user_turn(record):
