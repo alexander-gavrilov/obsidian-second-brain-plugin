@@ -48,8 +48,17 @@ Resolve the script path (prefer the installed plugin, fall back to a checkout-lo
 ```bash
 SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-park-session/scripts/session_meta.py
 [ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-park-session/scripts/session_meta.py
+[ -f "$SCRIPT" ] || SCRIPT=$(find ~/.claude/plugins -path "*/obsidian-park-session/scripts/session_meta.py" 2>/dev/null | head -1)
 python3 "$SCRIPT"
 ```
+
+If none of these resolve to an existing file (the installed plugin predates this
+skill and there is no local checkout), the `find` fallback searches every
+installed plugin under `~/.claude/plugins` for the script regardless of
+marketplace name — covering both a differently-named marketplace and a stale
+one that hasn't yet picked up this skill's merge. If the script still cannot be
+found, treat it as the transcript-unavailable case below: record every field as
+`unknown` and continue.
 
 With no arguments it picks the most recently modified transcript for the current
 working directory — that is this session. If you know the session id (the
@@ -101,10 +110,16 @@ The `# <title>` heading in the note body uses the same rule: if `title` is
 
 Create the `raw/YYYY-MM-DD/` directory if it does not exist.
 
+The front matter leads with the vault's standard raw-note fields (`date`,
+`source`, `tags`) so lint/query tooling that expects every `raw/` note to
+carry them keeps working, followed by the session-specific fields.
+
 ```markdown
 ---
-type: session
+date: <today, YYYY-MM-DD>
 source: claude-session
+tags: [session]
+type: session
 session_id: <session_id>
 models: [<models, comma-separated>]
 cwd: <cwd>
