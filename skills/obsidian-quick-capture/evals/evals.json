@@ -31,15 +31,15 @@
     },
     {
       "id": 3,
-      "prompt": "Good morning! Quick capture: https://newsletter.pragmaticengineer.com/p/ai-agents-2025 — interesting read on AI agent architectures",
-      "expected_output": "Since this is the first capture of the day (input/2026-04-20.md does not exist), the skill should: (1) check log.md for 2026-04-19 — since there IS an entry for 2026-04-17 but nothing for 2026-04-18 or 2026-04-19, check input/ for those dates; (2) generate a morning briefing covering active projects and suggestions; (3) append the URL capture entry; (4) confirm briefly. Background agent may be spawned if unprocessed input files exist for those days.",
+      "prompt": "Quick capture: https://newsletter.pragmaticengineer.com/p/ai-agents-2025 — interesting read on AI agent architectures",
+      "expected_output": "input/2026-04-20.md does not exist, so the skill scaffolds it via the daily-note script, appends the URL entry under '## 📥 Captures' without fetching the URL, and confirms in one line. No briefing is produced and no background ingest is spawned.",
       "files": [],
       "assertions": [
-        "The daily briefing is shown with active projects section",
-        "The daily briefing includes suggested focus items",
-        "An entry for the URL is appended to input/2026-04-20.md",
-        "The response time is fast — no URL was fetched",
-        "The confirmation is concise (not re-explaining everything)"
+        "Today's input file is scaffolded from the template (not a bare file)",
+        "An entry for the URL is appended under '## 📥 Captures' in input/2026-04-20.md",
+        "No briefing is shown and no background agent is spawned",
+        "The response is fast — no URL was fetched",
+        "The confirmation is a single line"
       ]
     }
   ]

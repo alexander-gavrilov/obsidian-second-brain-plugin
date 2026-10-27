@@ -1,189 +1,50 @@
 ---
 name: obsidian-quick-capture
-description: Fast, non-blocking capture of content into the Obsidian vault's daily input file. Use this skill when the user wants to save something quickly without waiting — URLs, ideas, notes, meeting bullets, or anything they say like "capture this", "note this", "quick save", "add to my inbox", "jot this down", or just pastes a link or text and says "save for later". Strongly prefer this over obsidian-ingest when the user is in the middle of something and just wants to capture without being blocked. Also trigger when the user starts their day or says something like "let's get started" or "morning" — in that case, run the first-capture-of-day briefing even with no content.
-context: fork
-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
+description: Fast capture of content into the vault's daily input file (input/YYYY-MM-DD.md) without processing it. Use when the user says "capture this", "note this", "quick save", "add to my inbox", "jot this down", or pastes a link or text to save for later. Prefer over obsidian-ingest when the user is mid-task and just wants it recorded.
+allowed-tools: Read, Write, Edit, Glob, Bash
 ---
 
 # Obsidian Quick Capture
 
-Capture content fast into `input/YYYY-MM-DD.md`. No entity extraction, no wiki updates — that happens later in the background. The goal is to get content recorded in under 5 seconds of wait time.
+Append one entry to `input/YYYY-MM-DD.md`. No entity extraction, no wiki updates, no task filing, no briefing — `obsidian-ingest` processes the file later. This skill runs **inline** in the current conversation so it can see what the user wants captured (do not run it as a forked/background skill).
 
-## Step 0: Resolve vault
+> **Hard constraint**: the only file written is today's `input/YYYY-MM-DD.md`. Never touch `raw/`, `wiki/`, `tasks/`, `index.md` or `log.md`. Scaffolding today's note via the daily-note script (Step 2) is the sanctioned way to create it.
 
-Resolve this once per session — don't ask again mid-session.
+## Step 1: Resolve vault
 
-1. Check if a local vault exists: does `schema.md` exist in the current working directory?
-2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+Run `python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"`. It prints `root=`, `mode=`, `local=`, `global=`; exit 2 means no vault (tell the user to run `obsidian-configure`). `mode=single` -> use `root`; `mode=ambiguous` -> ask once per session whether to capture to the global or local vault. Do not re-ask mid-session.
 
-**Decision:**
-- Local present + global configured → ask once: *"Capture to global vault (at `<global_path>`) or local (current directory)?"*
-- Local present + no global configured → use local, no prompt
-- No local + global configured → use global path silently
-- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
-
-All file operations below use the resolved vault root.
-
----
-
-Read `schema.md` only if you haven't already in this session.
-
-> **Hard constraint**: This skill writes to exactly ONE file: `input/YYYY-MM-DD.md`. Never create or modify anything in `raw/`, `wiki/`, `index.md`, or `log.md`. Reading `wiki/projects/` for the morning briefing is fine — but reading is not a trigger to write. If you notice an entity or concept worth tracking, do not create a wiki page. Just capture the content and let the background ingest handle it later. Scaffolding today's note from the template via the `obsidian-daily-note` script (Step 2c) is the sanctioned way to create that one file; the script's carry-over reads of prior daily notes are reads, not writes, and do not violate this one-file constraint.
-
----
-
-## Step 1: Check if this is the first capture of the day
-
-Check whether `input/YYYY-MM-DD.md` exists for today's date:
-- **If the file does not exist**: this is the first capture of the day → run the **First-Capture-of-Day routine** (Step 2) before proceeding
-- **If the file exists**: skip to Step 3
-
----
-
-## Step 2: First-capture-of-day routine
-
-This runs once per day, before the first capture is written. It has three parts: a background catch-up, a morning briefing, and scaffolding today's note from the template.
-
-### 2a: Trigger background ingest for all unprocessed days
-
-Scan for every input file that hasn't been ingested yet:
-
-1. Glob `input/YYYY-MM-DD.md` files (exclude `input/processed/`). For each file found, extract the date from the filename.
-2. Read `log.md` once. For each date, check whether a `- BATCH-INGEST:` or `- INGEST:` line appears under its `## YYYY-MM-DD` header.
-3. Collect all dates where an input file **exists** but the log has **no INGEST entry** for that date. Skip today — only process past days.
-
-If there are unprocessed days, spawn a **single** background agent to process all of them sequentially:
-
-**How to spawn the background ingest:**
-
-Read the obsidian-ingest skill at `~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-ingest/SKILL.md` to get its instructions. Then spawn:
-
-```
-Agent(
-  description: "Background ingest for <N> unprocessed days",
-  run_in_background: true,
-  prompt: """
-Working directory: <vault_absolute_path>
-Today's date for logging purposes: <today's date>
-
-Process all unprocessed quick-capture input files in order (oldest first):
-<list each unprocessed file: input/YYYY-MM-DD.md>
-
-Read and follow these instructions exactly:
-<full contents of obsidian-ingest SKILL.md>
-
-For each file:
-  Parse each entry (separated by `---`, starting with `### HH:MM —`).
-  For each entry run the full ingest pipeline: create raw file, extract entities,
-  update wiki pages, update index.md. Fetch URLs if the content is sparse.
-
-After processing each file:
-  - Append `- BATCH-INGEST: processed input/<date>.md → <N> items` to log.md
-    under the <today's date> header (create it once if it doesn't exist)
-  - Move the file: mv input/<date>.md input/processed/<date>.md
-
-Work autonomously — no user interaction needed.
-"""
-)
-```
-
-Tell the user how many days are queued: "Running background ingest for N unprocessed day(s) — I'll notify you when done." If nothing is unprocessed, skip silently.
-
-### 2b: Generate the morning briefing
-
-Read these files to build context (read them in parallel):
-- `log.md` — last 40 lines (recent activity)
-- All files in `wiki/projects/` (glob then read each)
-- `input/<yesterday>.md` if it exists (to know what was captured but not yet processed)
-
-Then produce a **Daily Briefing** in this format:
-
-```
-## Daily Briefing — <Weekday>, <Month Day>
-
-**Active projects** (from wiki):
-- <project name>: <one-line status or last notable update>
-- ...
-
-**Captured yesterday** (not yet processed):
-- <brief list of titles from yesterday's input, if any>
-
-**Suggested focus for today**:
-- <2-4 concrete suggestions based on recent log activity, project states, and unprocessed items>
-
-**Worth keeping in mind**:
-- <1-2 observations — e.g. a project that went quiet, a person you haven't checked in with, a concept with open questions>
-```
-
-Be specific and concrete. Pull from actual content in the files, not generic advice. If a project page mentions a deadline or milestone, surface it. If log.md shows a topic ingested 10 days ago with no follow-up, note it.
-
-### 2c: Scaffold today's daily note from template
-
-This is the last sub-step of the first-capture routine — it runs after 2a and 2b, so the file is created immediately before the first entry is written.
-
-When `input/YYYY-MM-DD.md` does not exist yet, **do not create a bare file**. Instead scaffold it from the template using the `obsidian-daily-note` script. Get today's date with `date +%Y-%m-%d`, resolve the script (prefer the installed plugin, fall back to a vault-local copy), then run it from the vault root:
+## Step 2: Ensure today's file exists
 
 ```bash
-SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py
-[ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py
-python3 "$SCRIPT" <today> --vault "<resolved vault root>"
+TODAY=$(date +%Y-%m-%d)
+[ -f "<root>/input/$TODAY.md" ] || {
+  SCRIPT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/skills/obsidian-daily-note/scripts/create_daily_note.py"
+  [ -f "$SCRIPT" ] || SCRIPT="<root>/.claude/skills/obsidian-daily-note/scripts/create_daily_note.py"
+  python3 "$SCRIPT" "$TODAY" --vault "<root>"
+}
 ```
 
-Here `<resolved vault root>` is the vault path resolved in Step 0 — always pass it explicitly so scaffolding targets the resolved (possibly global) vault, not the current directory.
+Always pass `--vault`. If the script reports the template is missing, tell the user to run `obsidian-init`; never hand-write a bare file. If a legacy file lacks a `## 📥 Captures` heading, add it at the end first.
 
-This renders every template section (`## 📅 Agenda`, `## ✅ Tasks`, `## 📝 Meeting notes`, `## 📥 Captures`) exactly as Obsidian's Templater would, and as a bonus carries forward unfinished tasks from the most recent prior daily note. This is the sanctioned way to create the daily input file — see the `obsidian-daily-note` skill for details. If the script reports the template is missing, tell the user to run `obsidian-init` (do not hand-write a bare file).
+## Step 3: Append the entry
 
----
-
-## Step 3: Parse the input
-
-The user provides one of:
-- **URL** — the title is inferred from the URL or surrounding context
-- **Pasted text or idea** — treat as a personal note
-- **File path** — use the filename as the title
-- **Nothing** (morning trigger only) — skip to Step 4, no entry to write
-
-Infer a short title (2–5 words, lowercase-hyphenated). Infer 1–3 tags from content. Do not fetch URLs yet — that happens during full ingest.
-
-For text content: keep it verbatim or lightly cleaned. For URLs: use any surrounding context the user gave as the content (don't fetch). Mark source appropriately.
-
----
-
-## Step 4: Append to the daily input file
-
-The file already exists — it was scaffolded from the template in Step 2c (or it existed before today's first capture). Append the entry block **under the `## 📥 Captures` heading**, not at the end of the file (the template ends `## 📝 Meeting notes` then `## 📥 Captures`, so writing to the end would land the entry in the wrong section).
-
-Append this entry block to the file:
+Take the content **verbatim from the conversation** (pasted text, link, the user's own words). Do not fetch URLs or summarise away detail. Get the time with `date +%H:%M`. Append under `## 📥 Captures` (not at end of file — the template has other sections), with a blank line before it if the section already has content:
 
 ```markdown
-### HH:MM — <title>
-**src**: <url | note | file:path>
+### HH:MM — <short title>
+**src**: <url | personal | file:path | conversation>
 **tags**: tag1, tag2
 
-<content — the user's text, verbatim idea, or a one-line description of the URL>
+<English summary, 1-3 lines, if the content is not English or is long>
+
+<original content, verbatim — keep non-English text (PL/RU/...) exactly as written>
 
 ---
 ```
 
-Get the actual current time by running `date +%H:%M` via Bash. Use that value as the timestamp. Leave a blank line before `### HH:MM` if the section already has content.
+Title is 2-5 words; 1-3 tags inferred from content. English-only content needs no separate summary.
 
-**Legacy notes**: if a pre-existing note lacks a `## 📥 Captures` heading (e.g. an older bare file), add the heading at the end of the file first, then append the entry under it.
+## Step 4: Confirm
 
----
-
-## Step 5: Confirm to the user
-
-Reply with a single short confirmation — one line. Example:
-
-> Captured: "claude-routines-blog" — added to today's input. Full ingest will run in the background tonight.
-
-If the morning briefing was shown (Step 2b), the confirmation can be even shorter since you already said plenty.
-
----
-
-## What good looks like
-
-- The user waited less than 5 seconds
-- The entry is in `input/YYYY-MM-DD.md` with correct format
-- If it was the first capture of the day: background ingest was triggered for all unprocessed days (not just yesterday) and the briefing was relevant and actionable
-- No wiki files were touched, no entity extraction was done
+One line, e.g. `Captured "claude-routines-blog" to input/2026-10-27.md.` Do not promise when ingest will run.
