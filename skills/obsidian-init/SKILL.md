@@ -1,7 +1,7 @@
 ---
 name: obsidian-init
 description: Initialize a new Obsidian knowledge vault with the second-brain structure. Use this skill when the user wants to set up a new vault, scaffold a fresh knowledge base, or prepare a directory for use with the obsidian-ingest/query/lint/migrate skills. Trigger on phrases like "set up my vault", "initialize this vault", "create my second brain", "scaffold my notes", "new vault setup", or when the user is in an empty directory and wants to start taking notes with Claude.
-tools: Read, Write, Bash, Glob
+allowed-tools: Read, Write, Bash, Glob
 ---
 
 # Obsidian Init
@@ -211,7 +211,7 @@ Scaffold it so those skills work in this vault.
 Resolve the plugin's default template (prefer the installed plugin, fall back to a vault-local copy):
 
 ```bash
-DEFAULT_TPL=~/.claude/plugins/marketplaces/obsidian-second-brain/templates/raw-note.md
+DEFAULT_TPL="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/templates/raw-note.md"
 # dev fallback when running from a clone of the plugin repo:
 [ -f "$DEFAULT_TPL" ] || DEFAULT_TPL=templates/raw-note.md
 ```

@@ -55,7 +55,7 @@ what to resume next into `raw/YYYY-MM-DD/session-<slug>.md`, with the session
 id, models used, working folder, and start/end times in the front matter.
 Writes the note plus one `log.md` line; wiki pages are left to `obsidian-ingest`.
 
-**Trigger:** "park this session", "wrap up this session", "I'm done for today".
+**Trigger:** "park this session", "wrap up this session".
 
 ## Vault conventions
 
