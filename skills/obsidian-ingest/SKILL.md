@@ -18,7 +18,7 @@ Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if th
 python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
 ```
 
-It prints `root=`, `mode=`, `local=`, `global=`. Exit code 2 means no vault is available: stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 3 means no vault is available (exit 2 means the script itself was not found — check the path): stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
 
 - `mode=single` (including when the current directory *is* the global vault) -> use `root`, never prompt.
 - `mode=ambiguous` (a local vault and a different global vault) -> ask once per session: *"Run this global (at `<global>`) or local (`<local>`)?"* Use the answer as the root.
@@ -91,9 +91,9 @@ Be selective. Not every noun needs a wiki page. Ask: "would this entity accumula
 
 ### Step 3b: Detect tasks and file them
 
-In addition to — never instead of — normal wiki filing, check whether the content states an obligation on Alexander's own future action ("надо", "не забыть", "need to", "remember to", an explicit "task"/"todo", ...). Follow `schema.md` Operations > Ingest and `conductor/task-storage-spec.md` (line format, buckets, §7 duplicate rules):
+Only if the vault has `tasks/` and `schema.md` describes task detection (otherwise skip 3b and 3c). In addition to — never instead of — normal wiki filing, check whether the content states an obligation on Alexander's own future action ("надо", "не забыть", "need to", "remember to", an explicit "task"/"todo", ...). Follow `schema.md` Operations > Ingest and `conductor/task-storage-spec.md` (line format, buckets, §7 duplicate rules):
 - Determine the due date (ISO) if stated or clearly implied; write the task line (`- [ ] description (created: today) (due: ...) [[links]]`).
-- Dup check against open tasks in `tasks/today.md`, `tasks/scheduled.md` and `tasks/someday.md`; if a near-duplicate exists, don't write it but still log it.
+- Dup check (spec §7: fuzzy judgment, not string match) against open tasks in `tasks/today.md`, `scheduled.md` and `someday.md`. On a duplicate, don't add a second line: if the existing one is undated and the new capture gives a due date, move it to `scheduled.md` (insert `(due: ...)` right after `(created: ...)`) and log `TASK_ADD ... (upgraded)`; otherwise skip, but leave a visible trace in the log line (e.g. `TASK_ADD: skipped duplicate of "<existing>"`). A task that recurs after being done is new, not a duplicate. If the capture says a done task isn't actually finished, reopen it per §7 (`- [ ]`, strip `(completed:)`, keep `(created:)`, log `TASK_ADD ... (reopened)`).
 - File to `someday.md` (no date), `scheduled.md` (future, under `## YYYY-MM-DD`) or `today.md` (today/overdue, right sub-heading).
 - Append a **separate** `TASK_ADD` line to `log.md` per task, even inside a BATCH-INGEST.
 - Ambiguous commitments: file to the wiki only and mention the ambiguity in the summary.
@@ -101,7 +101,7 @@ In addition to — never instead of — normal wiki filing, check whether the co
 
 ### Step 3c: Detect completions
 
-For newly ingested content, compare with all open tasks in `tasks/`. On confident evidence a task is done (proof of payment, confirmed booking, explicit statement), follow `conductor/daily-briefing-prompt.md` §3.2 Step 2: flip to `- [x]`, add `(completed: <today's run date>)`, move the line to the top of `tasks/done.md`, and log `TASK_DONE: "<description>" → tasks/done.md`. Be conservative: ambiguous or partial evidence stays open. Evidence that makes a task moot rather than done -> `TASK_CANCEL` per spec §7.
+Same guard as 3b. For newly ingested content, compare with all open tasks in `tasks/`. On confident evidence a task is done (proof of payment, confirmed booking, explicit statement), follow `conductor/daily-briefing-prompt.md` §3.2 Step 2 (if that file is missing, `schema.md` and `conductor/task-storage-spec.md` §3.1): flip to `- [x]`, add `(completed: <today's run date>)` as the last metadata paren, before any `[[links]]`, move the line to the top of `tasks/done.md`, and log `TASK_DONE: "<description>" → tasks/done.md`. Be conservative: ambiguous or partial evidence stays open. Evidence that makes a task moot rather than done -> `TASK_CANCEL` per spec §7.
 
 ### Original language
 
@@ -174,11 +174,12 @@ Batch mode processes all entries in an `input/YYYY-MM-DD.md` file. Use when:
 
 ### B1: Read and parse the input file
 
-Read `input/YYYY-MM-DD.md` (ignore the template sections — Agenda, Tasks checklists, routine, Meeting notes — unless the user wrote content there; process what is under `## 📥 Captures`). Parse tolerantly into entries:
+Read `input/YYYY-MM-DD.md` (ignore template scaffolding — Agenda block, routine checklist — but do read anything the user wrote under Tasks, Meeting notes or Captures). Parse tolerantly into entries:
 - An entry starts at a `### HH:MM — <title>` heading (em dash; a hyphen is accepted) and runs to the next such heading. `---` delimiters are optional.
 - Tags may be a `**tags**: a, b` line or a `#tag #tag2` line; source is `**src**: ...`. With no `**src**`, source is `"personal"`.
 - Free-form `## Section` blocks or bullet groups under a heading count as one entry each.
 - Entries that are empty or only template scaffolding are skipped (not counted).
+- User-typed `- [ ]` items under `## ✅ Tasks` are not scaffolding: inspect each as a task cue (3b) and dedupe against `tasks/` (they may already be tracked). The unticked routine checklist is scaffolding.
 
 ### B2: Process each entry through the full pipeline
 
@@ -188,7 +189,7 @@ For each parsed entry, run Steps 1–6 of Single Mode:
 - Use the entry's `**tags**:` as hints for wiki categorization
 - Use the entry's content as the raw content to summarize
 
-Task detection (3b) and completion detection (3c) run per entry. Fetch URLs only if the content field is sparse (just a URL with no description). If the user already wrote a summary, use that.
+**Failure boundary**: if an entry is malformed or errors, skip only that entry, record it (title + reason) in your summary, and continue with the rest. Task detection (3b) and completion detection (3c) run per entry. Fetch URLs only if the content field is sparse (just a URL with no description). If the user already wrote a summary, use that.
 
 Work through entries sequentially. Log each one as it's processed.
 
@@ -205,7 +206,7 @@ After all entries are processed, append to `log.md`:
 
 ### B4: Archive the input file
 
-Move the processed file to preserve it:
+Move the file to `input/processed/` **only if every entry processed without error**. If any entry failed, leave the file in `input/` for a retry and report which entries failed (this matches `conductor/daily-briefing-prompt.md` step 3.1 / spec §8.1). Otherwise:
 ```bash
 mv input/YYYY-MM-DD.md input/processed/YYYY-MM-DD.md
 ```

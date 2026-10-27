@@ -21,4 +21,4 @@ Each skill reads `schema.md` in the vault root first. Create this file to descri
 
 Skills work on the **current working directory** — run Gemini CLI from the vault root.
 
-Skills locate the shared vault resolver at `scripts/resolve_vault.py` in this extension's directory (`${CLAUDE_PLUGIN_ROOT}` under Claude Code); when running under Gemini CLI use that path relative to the extension install.
+Skills resolve the vault with `scripts/resolve_vault.py` (`${CLAUDE_PLUGIN_ROOT}` is Claude Code only). Under Gemini CLI, run it from the extension install directory, typically `python3 ~/.gemini/extensions/obsidian-second-brain/scripts/resolve_vault.py` (adjust to where the extension is installed). Exit code 3 means no vault is configured.

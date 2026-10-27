@@ -14,7 +14,8 @@ Output (stdout, key=value lines):
   local=<path or empty>
   global=<path or empty>
 
-Exit codes: 0 resolved, 2 no vault found (message on stderr).
+Exit codes: 0 resolved, 3 no vault found (message on stderr). (Python itself exits 2 when
+the script file is missing, so 2 is never used for "no vault".)
 With --root only the root path is printed.
 """
 import argparse
@@ -41,6 +42,8 @@ def read_global(config_path):
         with open(os.path.expanduser(config_path), encoding="utf-8") as f:
             value = json.load(f).get("global_vault_path") or ""
     except (OSError, ValueError, AttributeError):
+        return ""
+    if not isinstance(value, str):
         return ""
     value = os.path.realpath(os.path.expanduser(value)) if value else ""
     return value if value and os.path.isdir(value) else ""
@@ -71,7 +74,7 @@ def main(argv=None):
         print("No vault found here and no global vault is configured. "
               "Run `obsidian-configure` to set one up, or `obsidian-init` to create one here.",
               file=sys.stderr)
-        return 2
+        return 3
     if a.root:
         print(root)
     else:

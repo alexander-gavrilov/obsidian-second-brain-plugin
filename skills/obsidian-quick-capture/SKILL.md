@@ -12,7 +12,7 @@ Append one entry to `input/YYYY-MM-DD.md`. No entity extraction, no wiki updates
 
 ## Step 1: Resolve vault
 
-Run `python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"`. It prints `root=`, `mode=`, `local=`, `global=`; exit 2 means no vault (tell the user to run `obsidian-configure`). `mode=single` -> use `root`; `mode=ambiguous` -> ask once per session whether to capture to the global or local vault. Do not re-ask mid-session.
+Run `python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"`. It prints `root=`, `mode=`, `local=`, `global=`; exit 3 means no vault (tell the user to run `obsidian-configure`). `mode=single` -> use `root`; `mode=ambiguous` -> ask once per session whether to capture to the global or local vault. Do not re-ask mid-session.
 
 ## Step 2: Ensure today's file exists
 
@@ -29,7 +29,7 @@ Always pass `--vault`. If the script reports the template is missing, tell the u
 
 ## Step 3: Append the entry
 
-Take the content **verbatim from the conversation** (pasted text, link, the user's own words). Do not fetch URLs or summarise away detail. Get the time with `date +%H:%M`. Append under `## 📥 Captures` (not at end of file — the template has other sections), with a blank line before it if the section already has content:
+Take the content **verbatim from the conversation** (pasted text, link, the user's own words). Do not fetch URLs or summarise away detail. Get the time with `date +%H:%M`. Append the entry as the last block of the `## 📥 Captures` section (the template ends with that section; if anything follows it, insert before the next `## ` heading), with a blank line before it if the section already has content:
 
 ```markdown
 ### HH:MM — <short title>
@@ -43,7 +43,7 @@ Take the content **verbatim from the conversation** (pasted text, link, the user
 ---
 ```
 
-Title is 2-5 words; 1-3 tags inferred from content. English-only content needs no separate summary.
+Title is 2-5 words; 1-3 tags inferred from content. If the user flags it explicitly ("task", "todo", "remind me"), keep that word in the title/tags/body so ingest sees it — but do no task detection or filing yourself. English-only content needs no separate summary.
 
 ## Step 4: Confirm
 

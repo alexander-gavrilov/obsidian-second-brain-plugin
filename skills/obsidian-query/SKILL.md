@@ -1,7 +1,7 @@
 ---
 name: obsidian-query
 description: Query an Obsidian knowledge vault to answer questions from stored knowledge. Use this skill when the user asks about something they might have saved, wants to recall information, or asks "what do I know about X", "find my notes on X", "do I have anything about X", "remind me about X", "what did I save about X". Also trigger when the user asks a question that seems like it could be answered from their notes rather than general knowledge.
-allowed-tools: Read, Glob, Grep, Write, Edit
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 ---
 
 # Obsidian Query
@@ -14,7 +14,7 @@ Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if th
 python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
 ```
 
-It prints `root=`, `mode=`, `local=`, `global=`. Exit code 2 means no vault is available: stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 3 means no vault is available (exit 2 means the script itself was not found — check the path): stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
 
 - `mode=single` -> use `root`, no prompt.
 - `mode=ambiguous` -> answer from the **local** vault (`root`); do not ask up front. Step 2.5 then offers the global one.
@@ -56,7 +56,7 @@ If the vault has partial information and you supplement with general knowledge, 
 
 This runs ONLY when Step 0 reported `mode=ambiguous` (a local vault plus a *different* global vault). When `mode=single` — including when you are already inside the global vault — skip it: re-searching the same vault would duplicate and mislabel identical results.
 
-Read the config flag `query_offer_global_after_local` from `~/.claude/obsidian-second-brain-config.json`. Treat a missing key as `true` (default on). If it is `false`, skip this step.
+Read the config flag `query_offer_global_after_local` from the same config file the resolver uses (`$OBSIDIAN_SB_CONFIG`, default `~/.claude/obsidian-second-brain-config.json`). Treat a missing key as `true` (default on). If it is `false`, skip this step.
 
 If enabled, then — regardless of whether the local search found anything — offer to also search the global knowledge base (phrase the offer in the user's language), e.g.:
 
@@ -70,12 +70,18 @@ If the query produced a useful answer that isn't already well-captured in a wiki
 
 > "Want me to save this to your vault? I could create/update `wiki/<category>/<page>`."
 
-If yes, create or update the relevant wiki page and append to `log.md`:
+If yes, create or update the relevant wiki page and log it as:
 ```
 - QUERY: "<question summary>" → filed to wiki/<page>
 ```
 
 If the answer was already well-captured in an existing page, no need to offer — just cite the page.
+
+## Step 4: Task-like questions and the log
+
+Per `schema.md` Operations > Query: if the answer or the question itself is task-like (an obligation on the user's own future action; cues in `schema.md` Ingest), **propose** filing it into `tasks/` (format and duplicate rules in `conductor/task-storage-spec.md`). Never create or modify task files without the user's go-ahead; Query also never performs rollover. If approved, write the line, log a separate `TASK_ADD`, and check duplicates first. Only when `tasks/` exists.
+
+Then append the `QUERY` line to `log.md` (schema step 4: append to `log.md` for every query; use the filed form above when something was filed, else `- QUERY: "<question summary>"`).
 
 ## What good looks like
 

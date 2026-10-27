@@ -28,7 +28,7 @@ Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if th
 python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
 ```
 
-It prints `root=`, `mode=`, `local=`, `global=`. Exit code 2 means no vault is available: stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 3 means no vault is available (exit 2 means the script itself was not found — check the path): stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
 
 - `mode=single` (including when the current directory *is* the global vault) -> use `root`, never prompt.
 - `mode=ambiguous` (a local vault and a different global vault) -> ask once per session: *"Park this session into global (at `<global>`) or local (`<local>`)?"* Use the answer as the root.

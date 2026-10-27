@@ -43,7 +43,44 @@ class T(unittest.TestCase):
 
     def test_nothing(self):
         rc, o = run(self.none, os.path.join(self.d, "missing.json"))
-        self.assertEqual(rc, 2)
+        self.assertEqual(rc, 3)
+
+    def cfg_with(self, content):
+        p = os.path.join(self.d, "c2.json"); open(p, "w").write(content); return p
+
+    def test_malformed_json(self):
+        rc, o = run(self.none, self.cfg_with("{not json"))
+        self.assertEqual(rc, 3)
+
+    def test_non_string_value(self):
+        for v in (123, ["x"], {"a": 1}, True):
+            rc, o = run(self.none, self.cfg_with(json.dumps({"global_vault_path": v})))
+            self.assertEqual(rc, 3, v)
+
+    def test_config_points_nowhere(self):
+        rc, o = run(self.none, self.cfg_with(json.dumps({"global_vault_path": os.path.join(self.d, "gone")})))
+        self.assertEqual(rc, 3)
+
+    def test_root_flag(self):
+        p = subprocess.run([sys.executable, SCRIPT, "--cwd", self.l, "--config", self.cfg, "--root"],
+                           capture_output=True, text=True)
+        self.assertEqual(p.stdout.strip(), self.l)
+
+    def test_global_without_schema_md_still_used(self):
+        g2 = os.path.join(self.d, "g2"); os.makedirs(g2)
+        rc, o = run(self.none, self.cfg_with(json.dumps({"global_vault_path": g2})))
+        self.assertEqual((rc, o["root"]), (0, g2))
+
+    def test_env_var_config(self):
+        env = dict(os.environ, OBSIDIAN_SB_CONFIG=self.cfg)
+        p = subprocess.run([sys.executable, SCRIPT, "--cwd", self.none], capture_output=True, text=True, env=env)
+        self.assertIn("root=" + self.g, p.stdout)
+
+    def test_nested_stray_schema_md_picks_nearest(self):
+        nested = os.path.join(self.g, "sub", "deep"); os.makedirs(nested)
+        open(os.path.join(nested, "schema.md"), "w").close()
+        rc, o = run(nested, self.cfg)
+        self.assertEqual((o["root"], o["mode"]), (nested, "ambiguous"))
 
 
 if __name__ == "__main__":

@@ -18,12 +18,12 @@
     {
       "id": 2,
       "prompt": "Note this down: Platform Innovation team agreed to split the Starter Pack milestone into two phases — MVP by end of April, polish by mid-May. Viktor confirmed.",
-      "expected_output": "Entry appended to input/2026-04-20.md with src: note, relevant tags (platform-innovation, starter-pack), and the note content verbatim. No wiki updates.",
+      "expected_output": "Entry appended to input/2026-04-20.md with src: note or personal, relevant tags (platform-innovation, starter-pack), and the note content verbatim. No wiki updates.",
       "files": [],
       "assertions": [
         "An entry was appended to input/2026-04-20.md",
         "The entry includes the key facts (MVP, April, Viktor)",
-        "src is set to note or personal",
+        "src is set to note, personal or conversation",
         "tags include something related to platform-innovation or starter-pack",
         "No wiki/ files were created or modified",
         "No raw/ files were created"

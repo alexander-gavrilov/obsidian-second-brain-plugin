@@ -21,13 +21,15 @@ Save anything to your vault — URLs, pasted text, ideas, files. Fetches content
 
 **Trigger:** "ingest this", "save this to my vault", "remember this", or paste a URL.
 
+**Also:** detects tasks and completions and files them into `tasks/` (see the vault's `conductor/task-storage-spec.md`), and processes loose files dropped in `incoming/` (files move to `raw/<date>/` with a companion note).
+
 ### `obsidian-query`
 Answer questions from your stored knowledge. Searches wiki pages and raw notes, cites sources, and distinguishes vault knowledge from general knowledge. From inside a local vault it answers locally first, then offers to also search your configured global vault (toggle via config `query_offer_global_after_local`).
 
 **Trigger:** "what do I know about X", "find my notes on X", "remind me about X".
 
 ### `obsidian-lint`
-Health check for your vault — finds missing index entries, orphaned pages, broken links, recurring entities without wiki pages, and stale pages.
+Health check for your vault — finds missing index entries, orphaned pages, broken links, contradictions, recurring entities without wiki pages, and stale pages. Also does task maintenance in `tasks/` (rollover, 30-day archive, duplicates).
 
 **Trigger:** "lint the vault", "audit my notes", "check vault health".
 
@@ -49,6 +51,16 @@ Migrate an existing vault from the old flat `raw/` layout (`raw/YYYY-MM-DD-title
 ### `obsidian-daily-note`
 Scaffold a daily note at `input/YYYY-MM-DD.md` from `templates/raw-note.md`, rendered the way Obsidian's Templater would — usable from the terminal. Carries unfinished tasks forward from the previous daily note and can recollect older orphaned tasks.
 
+### `obsidian-quick-capture`
+Fast capture into today's `input/YYYY-MM-DD.md` (scaffolded from the template if missing) with no processing; `obsidian-ingest` handles it later.
+
+**Trigger:** "capture this", "note this", "jot this down".
+
+### `obsidian-configure`
+Set the global vault path stored in `~/.claude/obsidian-second-brain-config.json`.
+
+**Trigger:** "configure obsidian", "set my global vault".
+
 ### `obsidian-park-session`
 Park the session you're in — summarizes what happened, the decisions made, and
 what to resume next into `raw/YYYY-MM-DD/session-<slug>.md`, with the session
@@ -56,6 +68,10 @@ id, models used, working folder, and start/end times in the front matter.
 Writes the note plus one `log.md` line; wiki pages are left to `obsidian-ingest`.
 
 **Trigger:** "park this session", "wrap up this session".
+
+## Vault resolution
+
+All skills call `scripts/resolve_vault.py` (prints `root=`, `mode=`, `local=`, `global=`; exit 3 = no vault). Local and global vaults are compared by realpath, so working inside the global vault never prompts. Override the config file with `$OBSIDIAN_SB_CONFIG`.
 
 ## Vault conventions
 
