@@ -1,24 +1,27 @@
 ---
 name: obsidian-query
 description: Query an Obsidian knowledge vault to answer questions from stored knowledge. Use this skill when the user asks about something they might have saved, wants to recall information, or asks "what do I know about X", "find my notes on X", "do I have anything about X", "remind me about X", "what did I save about X". Also trigger when the user asks a question that seems like it could be answered from their notes rather than general knowledge.
-tools: Read, Glob, Grep, Write, Edit
+allowed-tools: Read, Glob, Grep, Write, Edit
 ---
 
 # Obsidian Query
 
 ## Step 0: Resolve vault
 
-1. Check if a local vault exists: does `schema.md` exist in the current working directory?
-2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if that variable is unset use `~/.claude/plugins/marketplaces/obsidian-second-brain/scripts/resolve_vault.py`):
 
-**Decision:**
-- Local present + global configured → use the **local** vault to answer, then after answering offer to also search the global vault (see Step 2.5). Do not ask up front.
-- Local present + no global configured → use local, no prompt
-- No local + global configured → use global path silently
-- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
+```
 
-All file operations below use the resolved vault root.
-Remember whether the resolved vault was the **local** one (a local `schema.md` was present) — Step 2.5 depends on it.
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 2 means no vault is available: stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
+
+- `mode=single` -> use `root`, no prompt.
+- `mode=ambiguous` -> answer from the **local** vault (`root`); do not ask up front. Step 2.5 then offers the global one.
+
+Remember whether `mode` was `ambiguous` — Step 2.5 only runs in that case.
+
+All file operations below use `root`.
 
 ---
 
@@ -51,7 +54,7 @@ If the vault has partial information and you supplement with general knowledge, 
 
 ## Step 2.5: Offer to also search the global vault
 
-This runs ONLY when Step 0 resolved the **local** vault (a local schema.md was present) and a `global_vault_path` is configured. It does NOT run when the query already used the global vault directly. Also skip it when the resolved local vault root is the **same path** as `global_vault_path` (you are already inside the global vault — offering to search it again would duplicate and mislabel identical results).
+This runs ONLY when Step 0 reported `mode=ambiguous` (a local vault plus a *different* global vault). When `mode=single` — including when you are already inside the global vault — skip it: re-searching the same vault would duplicate and mislabel identical results.
 
 Read the config flag `query_offer_global_after_local` from `~/.claude/obsidian-second-brain-config.json`. Treat a missing key as `true` (default on). If it is `false`, skip this step.
 
