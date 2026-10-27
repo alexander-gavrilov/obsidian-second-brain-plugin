@@ -1,7 +1,7 @@
 ---
 name: obsidian-configure
 description: Configure the global Obsidian vault path for the second-brain plugin. Use this skill when the user wants to set up or change their global vault, says "configure obsidian", "set my global vault", "change vault path", "set up obsidian", or when another obsidian skill reports that no global vault is configured and the user needs to fix it.
-tools: Read, Write, Bash
+allowed-tools: Read, Write, Bash
 ---
 
 # Obsidian Configure

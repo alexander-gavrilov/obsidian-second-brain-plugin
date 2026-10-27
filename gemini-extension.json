@@ -1,16 +1,24 @@
 {
   "name": "obsidian-second-brain",
-  "version": "1.0.0",
+  "version": "1.7.0",
   "description": "Obsidian vault skills for Gemini CLI — ingest, query, lint, and migrate notes in any vault",
-  "author": { "name": "alexander-gavrilov" },
+  "author": {
+    "name": "alexander-gavrilov"
+  },
   "homepage": "https://github.com/alexander-gavrilov/obsidian-second-brain-plugin",
   "repository": "https://github.com/alexander-gavrilov/obsidian-second-brain-plugin",
   "license": "MIT",
-  "keywords": ["obsidian", "notes", "knowledge-base", "second-brain", "pkm"],
+  "keywords": [
+    "obsidian",
+    "notes",
+    "knowledge-base",
+    "second-brain",
+    "pkm"
+  ],
   "contextFileName": "GEMINI.md",
   "skills": {
     "obsidian-ingest": {
-      "description": "Process and ingest raw content into an Obsidian knowledge vault. Use this skill whenever the user shares something to save, file, or remember — URLs, articles, pasted text, ideas, notes, or file paths. Trigger on phrases like \"ingest this\", \"save this to my vault\", \"add this to my brain\", \"file this\", \"remember this\", \"add a note about\", \"I want to keep this\", or when the user simply pastes a URL or chunk of text and seems to want it stored.",
+      "description": "Process content into the Obsidian vault - raw record, wiki pages, index, log, and tasks. Use when the user wants full processing: \"ingest this\", \"process this properly\", \"add to my brain\", \"file this\", or a backlog (\"process my input\", \"ingest yesterday\", \"process my inbox\", \"process incoming\"). Prefer obsidian-quick-capture for fast saves mid-task.",
       "path": "skills/obsidian-ingest/SKILL.md"
     },
     "obsidian-query": {
@@ -18,7 +26,7 @@
       "path": "skills/obsidian-query/SKILL.md"
     },
     "obsidian-lint": {
-      "description": "Run a health check on an Obsidian knowledge vault. Use this skill when the user asks to lint, audit, clean up, or check the vault. Trigger on phrases like \"lint the vault\", \"check vault health\", \"audit my notes\", \"find orphaned pages\", \"clean up my brain\".",
+      "description": "Run a health check on an Obsidian knowledge vault: index, orphans, broken links, contradictions, stale pages, and task maintenance (rollover, archive, duplicates). Use when the user asks to lint, audit, clean up, or check the vault.",
       "path": "skills/obsidian-lint/SKILL.md"
     },
     "obsidian-migrate": {
@@ -32,6 +40,22 @@
     "obsidian-restructure": {
       "description": "Migrate an existing Obsidian vault from the old flat raw/ structure to the new date-folder structure. Use this skill when the user wants to restructure an existing vault or upgrade to the new raw folder layout.",
       "path": "skills/obsidian-restructure/SKILL.md"
+    },
+    "obsidian-park-session": {
+      "description": "Park the current Claude Code session - summarize what happened into an Obsidian vault note carrying the session id, models used, working folder, and start/end times. Use when the user says \"park this session\", \"park the chat\", \"wrap up this session\", \"save this session\", or \"summarize and park\". Writes one session note plus a log entry; no wiki pages.",
+      "path": "skills/obsidian-park-session/SKILL.md"
+    },
+    "obsidian-quick-capture": {
+      "description": "Fast capture of content into the vault's daily input file (input/YYYY-MM-DD.md) without processing it. Use when the user says \"capture this\", \"note this\", \"quick save\", \"add to my inbox\", \"jot this down\", or pastes a link or text to save for later. Prefer over obsidian-ingest when the user is mid-task.",
+      "path": "skills/obsidian-quick-capture/SKILL.md"
+    },
+    "obsidian-daily-note": {
+      "description": "Create the vault's daily note at input/YYYY-MM-DD.md by rendering templates/raw-note.md (weekday-only Daily routine, correct frontmatter date, unfinished tasks carried forward). Use when the user asks to create, scaffold or start a daily note / journal for a day.",
+      "path": "skills/obsidian-daily-note/SKILL.md"
+    },
+    "obsidian-configure": {
+      "description": "Configure the global Obsidian vault path for the second-brain plugin. Use this skill when the user wants to set up or change their global vault, says \"configure obsidian\", \"set my global vault\", \"change vault path\", \"set up obsidian\", or when another obsidian skill reports that no global vault is configured and the user needs to fix it.",
+      "path": "skills/obsidian-configure/SKILL.md"
     }
   }
 }

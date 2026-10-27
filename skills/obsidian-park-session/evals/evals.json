@@ -18,8 +18,8 @@
     },
     {
       "id": 2,
-      "prompt": "I'm done for today, wrap up this session.",
-      "expected_output": "Same as eval 1 — the phrase 'I'm done for today' triggers parking. The summary reflects the actual work of the conversation and links relevant entities as [[wiki links]] without creating those pages.",
+      "prompt": "Wrap up this session and park it in the vault.",
+      "expected_output": "Same as eval 1 — the phrase 'wrap up this session' triggers parking. The summary reflects the actual work of the conversation and links relevant entities as [[wiki links]] without creating those pages.",
       "files": [],
       "assertions": [
         "A file matching raw/*/session-*.md was created",

@@ -1,7 +1,7 @@
 ---
 name: obsidian-park-session
-description: Park the current Claude Code session — summarize what happened into an Obsidian vault note carrying the session id, models used, working folder, and start/end times. Use this skill when the user wants to wrap up and record a working session, says "park this session", "park the chat", "wrap up this session", "save this session", "summarize and park", or "I'm done for today". Writes one session note plus a log entry; it does not create wiki pages.
-tools: Read, Write, Edit, Glob, Grep, Bash
+description: Park the current Claude Code session — summarize what happened into an Obsidian vault note carrying the session id, models used, working folder, and start/end times. Use this skill when the user wants to wrap up and record a working session, says "park this session", "park the chat", "wrap up this session", "save this session", or "summarize and park". Not for a generic end-of-day goodbye unless the user also asks to record the session. Writes one session note plus a log entry; it does not create wiki pages.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Obsidian Park Session
@@ -22,18 +22,18 @@ park this one instead.
 
 ## Step 0: Resolve vault
 
-Resolve this once per session — don't ask again mid-session.
+Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if that variable is unset use `~/.claude/plugins/marketplaces/obsidian-second-brain/scripts/resolve_vault.py`):
 
-1. Check if a local vault exists: does `schema.md` exist in the current working directory?
-2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
+```
 
-**Decision:**
-- Local present + global configured → ask once: *"Park this session into the global vault (at `<global_path>`) or local (current directory)?"*
-- Local present + no global configured → use local, no prompt
-- No local + global configured → use global path silently
-- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 3 means no vault is available (exit 2 means the script itself was not found — check the path): stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
 
-All file operations below use the resolved vault root.
+- `mode=single` (including when the current directory *is* the global vault) -> use `root`, never prompt.
+- `mode=ambiguous` (a local vault and a different global vault) -> ask once per session: *"Park this session into global (at `<global>`) or local (`<local>`)?"* Use the answer as the root.
+
+All file operations below use `root`.
 
 ## Step 1: Read the vault's conventions
 
@@ -46,7 +46,7 @@ the defaults below, follow `schema.md`.
 Resolve the script path (prefer the installed plugin, fall back to a checkout-local copy):
 
 ```bash
-SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-park-session/scripts/session_meta.py
+SCRIPT="${CLAUDE_SKILL_DIR:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-park-session}/scripts/session_meta.py"
 [ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-park-session/scripts/session_meta.py
 python3 "$SCRIPT"
 ```

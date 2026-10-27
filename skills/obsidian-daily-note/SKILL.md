@@ -1,18 +1,14 @@
 ---
 name: obsidian-daily-note
 description: >-
-  Create an Obsidian daily note file at input/YYYY-MM-DD.md by rendering the vault's
-  templates/raw-note.md template — including the weekday-only "Daily routine" checklist
-  and the correct frontmatter date. Use this whenever the user wants to create, scaffold,
-  start, or set up a daily note / daily journal for a given day ("make today's note",
-  "create a daily note for Saturday", "new journal entry for tomorrow", "set up my
-  daily note"). Especially important when the note is being created from the agent /
-  terminal rather than inside Obsidian, because Obsidian's Templater plugin only runs on
-  notes created through Obsidian itself — created any other way, the file is left with raw
-  <% %> syntax. This skill renders that template correctly outside Obsidian. Do NOT use
-  it for appending a quick capture to an existing day (that's quick-capture) or for
-  processing/ingesting notes (that's ingest).
+  Create the vault's daily note at input/YYYY-MM-DD.md by rendering templates/raw-note.md
+  (weekday-only Daily routine, correct frontmatter date, unfinished tasks carried forward).
+  Use when the user asks to create, scaffold or start a daily note / journal for a day
+  ("make today's note", "daily note for Saturday", "set up tomorrow's journal"). Works from
+  the terminal, where Obsidian's Templater never runs. Not for appending a capture
+  (quick-capture) or processing notes (ingest).
 model: haiku
+allowed-tools: Read, Write, Bash, Glob
 ---
 
 # Obsidian daily note
@@ -23,18 +19,18 @@ rendered deterministically so it works from the terminal where Templater never r
 
 ## Step 0: Resolve vault
 
-Resolve this once per session — don't ask again mid-session.
+Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if that variable is unset use `~/.claude/plugins/marketplaces/obsidian-second-brain/scripts/resolve_vault.py`):
 
-1. Check if a local vault exists: does `schema.md` exist in the current working directory?
-2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
+```
 
-**Decision:**
-- Local present + global configured → ask once: *"Create the daily note in the global vault (at `<global_path>`) or the local one (current directory)?"*
-- Local present + no global configured → use local, no prompt
-- No local + global configured → use global path silently
-- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 3 means no vault is available (exit 2 means the script itself was not found — check the path): stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
 
-Pass the resolved vault root to the script via `--vault` on every invocation below (the script otherwise searches upward from the current directory, which is wrong in global-vault mode).
+- `mode=single` (including when the current directory *is* the global vault) -> use `root`, never prompt.
+- `mode=ambiguous` (a local vault and a different global vault) -> ask once per session: *"Create the daily note in global (at `<global>`) or local (`<local>`)?"* Use the answer as the root.
+
+All file operations below use `root`.
 
 ## When this matters
 
@@ -50,12 +46,10 @@ Run the bundled script from the vault root. It finds the vault by walking up to 
 folder containing `templates/raw-note.md`, so the working directory just needs to be
 inside the vault.
 
-Resolve the script path (prefer the installed plugin, fall back to a vault-local copy):
-
 ```bash
-SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py
-[ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py
-python3 "$SCRIPT" [DATE] --vault "<resolved vault root>"
+SCRIPT="${CLAUDE_SKILL_DIR:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note}/scripts/create_daily_note.py"
+[ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py   # vault-local copy
+python3 "$SCRIPT" [DATE] --vault "<root>"
 ```
 
 `DATE` is optional and flexible:
@@ -65,16 +59,7 @@ python3 "$SCRIPT" [DATE] --vault "<resolved vault root>"
 - a weekday name like `saturday` → the nearest upcoming one (today counts)
 - an explicit `YYYY-MM-DD`
 
-**Examples**
-
-| User says | Command |
-|---|---|
-| "create today's daily note" | `SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py; [ -f "$SCRIPT" ] \|\| SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py; python3 "$SCRIPT"` |
-| "make a daily note for Saturday" | `SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py; [ -f "$SCRIPT" ] \|\| SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py; python3 "$SCRIPT" saturday` |
-| "set up tomorrow's journal" | `SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py; [ -f "$SCRIPT" ] \|\| SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py; python3 "$SCRIPT" tomorrow` |
-| "new daily note for 2026-07-01" | `SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py; [ -f "$SCRIPT" ] \|\| SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py; python3 "$SCRIPT" 2026-07-01` |
-
-Every example assumes `--vault "<resolved vault root>"` is appended (omitted above for brevity); it is required whenever the command is not run from inside the target vault.
+Examples (append `--vault "<root>"` to each): "today's note" -> no DATE; "note for Saturday" -> `saturday`; "tomorrow's journal" -> `tomorrow`; "note for 2026-07-01" -> `2026-07-01`.
 
 ## What the script guarantees
 
@@ -116,9 +101,8 @@ orphaned. To recover them, run the read-only recollect scan and present the
 results for the user to choose from:
 
 ```bash
-SCRIPT=~/.claude/plugins/marketplaces/obsidian-second-brain/skills/obsidian-daily-note/scripts/create_daily_note.py
-[ -f "$SCRIPT" ] || SCRIPT=.claude/skills/obsidian-daily-note/scripts/create_daily_note.py
-python3 "$SCRIPT" [DATE] --recollect
+# SCRIPT as resolved above
+python3 "$SCRIPT" [DATE] --vault "<root>" --recollect
 ```
 
 It prints `origin-date · age · task` for every unfinished task older than the

@@ -1,31 +1,35 @@
 ---
 name: obsidian-ingest
-description: Process and ingest raw content into an Obsidian knowledge vault — creating wiki pages, extracting entities, and updating the index. Use this skill when the user explicitly wants full processing: sharing content with "ingest this", "process this properly", "add to my brain", "file this", "full ingest", or when they want to process a backlog of quick-captures ("process my input", "ingest yesterday", "process my inbox"). Also runs automatically in the background when triggered by obsidian-quick-capture. Prefer obsidian-quick-capture for fast saves during active work; use this skill when thoroughness matters.
-tools: Read, Write, Edit, WebFetch, Glob, Grep, Bash
+description: >-
+  Process content into the Obsidian vault - raw record, wiki pages, index, log, and tasks.
+  Use when the user wants full processing: "ingest this", "process this properly", "add to
+  my brain", "file this", or a backlog ("process my input", "ingest yesterday", "process my
+  inbox", "process incoming"). Prefer obsidian-quick-capture for fast saves mid-task.
+allowed-tools: Read, Write, Edit, WebFetch, Glob, Grep, Bash
 ---
 
 # Obsidian Ingest
 
 ## Step 0: Resolve vault
 
-Before doing anything else, determine which vault to use. Ask this question **once** — the answer applies to the entire session.
+Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if that variable is unset use `~/.claude/plugins/marketplaces/obsidian-second-brain/scripts/resolve_vault.py`):
 
-1. Check if a local vault exists: does `schema.md` exist in the current working directory?
-2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
+```
 
-**Decision:**
-- Local present + global configured → ask once: *"Run this globally (at `<global_path>`) or locally (current directory)?"*
-- Local present + no global configured → use local, no prompt
-- No local + global configured → use global path silently; use it as the vault root for all file operations
-- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up, or `obsidian-init` to create a new vault here."*
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 3 means no vault is available (exit 2 means the script itself was not found — check the path): stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
 
-All file operations below use the resolved vault root.
+- `mode=single` (including when the current directory *is* the global vault) -> use `root`, never prompt.
+- `mode=ambiguous` (a local vault and a different global vault) -> ask once per session: *"Run this global (at `<global>`) or local (`<local>`)?"* Use the answer as the root.
+
+All file operations below use `root`.
 
 ---
 
 Process raw content into the Obsidian vault.
 
-Always read `schema.md` first — it defines the vault's conventions, folder structure, and front matter formats.
+Always read `schema.md` first — it defines the vault's conventions, folder structure, and front matter formats. The vault specs referenced below (`conductor/task-storage-spec.md`, `conductor/daily-briefing-prompt.md` §3.2) are authoritative; read them when the vault has them and don't duplicate their rules here.
 
 ---
 
@@ -33,7 +37,9 @@ Always read `schema.md` first — it defines the vault's conventions, folder str
 
 **Single mode**: The user provides content directly (URL, pasted text, file path, or an idea). → Follow Steps 1–6 for that one item.
 
-**Batch mode**: The user says "process input", "ingest yesterday", "process my inbox", or a background agent is told to process `input/YYYY-MM-DD.md`. → Follow the **Batch Mode** section below, which runs Steps 1–6 for each entry in the file.
+**Incoming mode**: the user says "process incoming" or points at files in `incoming/` -> see **Incoming Mode**.
+
+**Batch mode**: The user says "process input", "ingest yesterday", "process my inbox", or an agent is told to process `input/YYYY-MM-DD.md`. → Follow the **Batch Mode** section below, which runs Steps 1–6 for each entry in the file.
 
 ---
 
@@ -79,8 +85,27 @@ Scan the content for named entities worth tracking:
 - **Projects** — specific initiatives or efforts
 - **Places** — locations worth remembering
 - **Topics** — recurring themes that don't fit the above
+- **Events** — dated happenings (trip, appointment, meeting) -> page `type: event`
 
 Be selective. Not every noun needs a wiki page. Ask: "would this entity accumulate more information over time?" If yes, it deserves a page.
+
+### Step 3b: Detect tasks and file them
+
+Only if the vault has `tasks/` and `schema.md` describes task detection (otherwise skip 3b and 3c). In addition to — never instead of — normal wiki filing, check whether the content states an obligation on Alexander's own future action ("надо", "не забыть", "need to", "remember to", an explicit "task"/"todo", ...). Follow `schema.md` Operations > Ingest and `conductor/task-storage-spec.md` (line format, buckets, §7 duplicate rules):
+- Determine the due date (ISO) if stated or clearly implied; write the task line (`- [ ] description (created: today) (due: ...) [[links]]`).
+- Dup check (spec §7: fuzzy judgment, not string match) against open tasks in `tasks/today.md`, `scheduled.md` and `someday.md`. On a duplicate, don't add a second line: if the existing one is undated and the new capture gives a due date, move it to `scheduled.md` (insert `(due: ...)` right after `(created: ...)`) and log `TASK_ADD ... (upgraded)`; otherwise skip, but leave a visible trace in the log line (e.g. `TASK_ADD: skipped duplicate of "<existing>"`). A task that recurs after being done is new, not a duplicate. If the capture says a done task isn't actually finished, reopen it per §7 (`- [ ]`, strip `(completed:)`, keep `(created:)`, log `TASK_ADD ... (reopened)`).
+- File to `someday.md` (no date), `scheduled.md` (future, under `## YYYY-MM-DD`) or `today.md` (today/overdue, right sub-heading).
+- Append a **separate** `TASK_ADD` line to `log.md` per task, even inside a BATCH-INGEST.
+- Ambiguous commitments: file to the wiki only and mention the ambiguity in the summary.
+- Ignore someone else's action items and past events.
+
+### Step 3c: Detect completions
+
+Same guard as 3b. For newly ingested content, compare with all open tasks in `tasks/`. On confident evidence a task is done (proof of payment, confirmed booking, explicit statement), follow `conductor/daily-briefing-prompt.md` §3.2 Step 2 (if that file is missing, `schema.md` and `conductor/task-storage-spec.md` §3.1): flip to `- [x]`, add `(completed: <today's run date>)` as the last metadata paren, before any `[[links]]`, move the line to the top of `tasks/done.md`, and log `TASK_DONE: "<description>" → tasks/done.md`. Be conservative: ambiguous or partial evidence stays open. Evidence that makes a task moot rather than done -> `TASK_CANCEL` per spec §7.
+
+### Original language
+
+Keep non-English text (PL/RU/...) **verbatim** in raw files and quote it in wiki pages where it matters (names, document wording, amounts). Add an English summary alongside it; never replace the original with a translation.
 
 ### Step 4: Create or update wiki pages
 
@@ -102,11 +127,12 @@ Category mapping:
 - Personal projects, hobbies → `wiki/projects/`
 - Locations, restaurants, travel → `wiki/places/`
 - Work-related → `wiki/work/`
+- Owned devices and gadgets → `wiki/devices/` (a register `devices.md` plus one page per device: purchase date, warranty, notes; add new devices to the register). Use only if `schema.md` lists the category.
 
 Front matter:
 ```
 ---
-type: person | concept | project | place | topic
+type: person | concept | project | place | topic | event
 updated: YYYY-MM-DD
 ---
 ```
@@ -144,16 +170,16 @@ If a log entry for today already exists, append to it rather than creating a dup
 
 Batch mode processes all entries in an `input/YYYY-MM-DD.md` file. Use when:
 - The user asks to process their inbox or a specific date's captures
-- Called from a background agent spawned by obsidian-quick-capture
+- An agent (e.g. the vault's scheduled daily briefing) is told to process specific input files
 
 ### B1: Read and parse the input file
 
-Read `input/YYYY-MM-DD.md` for the target date. Parse it into discrete entries. Each entry is:
-- Delimited by `---` separators, starting with `### HH:MM — <title>`
-- OR a free-form section with a `## Section Heading` (treat each section as one entry)
-- OR bullet points under a heading (treat the whole heading block as one entry)
-
-For entries without a `**src**:` line, treat source as `"personal"`.
+Read `input/YYYY-MM-DD.md` (ignore template scaffolding — Agenda block, routine checklist — but do read anything the user wrote under Tasks, Meeting notes or Captures). Parse tolerantly into entries:
+- An entry starts at a `### HH:MM — <title>` heading (em dash; a hyphen is accepted) and runs to the next such heading. `---` delimiters are optional.
+- Tags may be a `**tags**: a, b` line or a `#tag #tag2` line; source is `**src**: ...`. With no `**src**`, source is `"personal"`.
+- Free-form `## Section` blocks or bullet groups under a heading count as one entry each.
+- Entries that are empty or only template scaffolding are skipped (not counted).
+- User-typed `- [ ]` items under `## ✅ Tasks` are not scaffolding: inspect each as a task cue (3b) and dedupe against `tasks/` (they may already be tracked). The unticked routine checklist is scaffolding.
 
 ### B2: Process each entry through the full pipeline
 
@@ -163,7 +189,7 @@ For each parsed entry, run Steps 1–6 of Single Mode:
 - Use the entry's `**tags**:` as hints for wiki categorization
 - Use the entry's content as the raw content to summarize
 
-Fetch URLs only if the content field is sparse (just a URL with no description). If the user already wrote a summary, use that.
+**Failure boundary**: if an entry is malformed or errors, skip only that entry, record it (title + reason) in your summary, and continue with the rest. Task detection (3b) and completion detection (3c) run per entry. Fetch URLs only if the content field is sparse (just a URL with no description). If the user already wrote a summary, use that.
 
 Work through entries sequentially. Log each one as it's processed.
 
@@ -176,14 +202,27 @@ After all entries are processed, append to `log.md`:
 - BATCH-INGEST: processed input/<date>.md → <N> items, created/updated <M> wiki pages
 ```
 
+`TASK_ADD` / `TASK_DONE` lines stay separate (see Step 3b).
+
 ### B4: Archive the input file
 
-Move the processed file to preserve it:
+Move the file to `input/processed/` **only if every entry processed without error**. If any entry failed, leave the file in `input/` for a retry and report which entries failed (this matches `conductor/daily-briefing-prompt.md` step 3.1 / spec §8.1). Otherwise:
 ```bash
 mv input/YYYY-MM-DD.md input/processed/YYYY-MM-DD.md
 ```
 
 Ensure `input/processed/` exists first.
+
+---
+
+## Incoming Mode
+
+`incoming/` is a drop folder for loose files (photos, screenshots, PDFs, invoices, bank confirmations). For each file (oldest first):
+1. Read/inspect it (images and PDFs are readable); decide the document's real date and a 2-5 word title.
+2. Move it into `raw/YYYY-MM-DD/` (use the document's date, else today's) and create the companion `<title>.md` there with the usual front matter (`source: "file:incoming/<original-name>"`) plus a faithful summary; keep any non-English text verbatim (see Original language).
+3. Run Steps 3-6 on it (entities, wiki, tasks 3b, completions 3c, index). A payment confirmation commonly completes an open task.
+4. Skip and delete only files that are exact duplicates of something already ingested (check `raw/` first).
+5. Log each with `INGEST: incoming/<file> (<what>) → created raw/..., created|updated wiki/...`, or one `BATCH-INGEST: processed incoming/ backlog (N files ...)` line for a backlog, matching earlier `log.md` entries. Leave `incoming/` empty.
 
 ---
 

@@ -1,23 +1,25 @@
 ---
 name: obsidian-restructure
 description: Migrate an existing Obsidian vault from the old flat raw/ structure (raw/YYYY-MM-DD-title.md) to the new date-folder structure (raw/YYYY-MM-DD/title.md). Use this skill when the user wants to restructure an existing vault, upgrade to the new raw folder layout, or migrate multiple vaults. Trigger on phrases like "migrate my vault structure", "restructure raw folder", "upgrade my vault", "convert to date folders".
-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Obsidian Restructure
 
 ## Step 0: Resolve vault
 
-1. Check if a local vault exists: does `schema.md` exist in the current working directory?
-2. Read `~/.claude/obsidian-second-brain-config.json` (if it exists) to get `global_vault_path`.
+Run the shared resolver (`${CLAUDE_PLUGIN_ROOT}/scripts/resolve_vault.py`; if that variable is unset use `~/.claude/plugins/marketplaces/obsidian-second-brain/scripts/resolve_vault.py`):
 
-**Decision:**
-- Local present + global configured → ask: *"Restructure the global vault (at `<global_path>`) or the local one (current directory)?"*
-- Local present + no global configured → use local, no prompt
-- No local + global configured → use global path silently
-- No local + no global → stop: *"No vault found here and no global vault is configured. Run `obsidian-configure` to set one up."*
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/obsidian-second-brain}/scripts/resolve_vault.py"
+```
 
-All file operations below use the resolved vault root.
+It prints `root=`, `mode=`, `local=`, `global=`. Exit code 3 means no vault is available (exit 2 means the script itself was not found — check the path): stop and tell the user to run `obsidian-configure` (or `obsidian-init` to create one here).
+
+- `mode=single` (including when the current directory *is* the global vault) -> use `root`, never prompt.
+- `mode=ambiguous` (a local vault and a different global vault) -> ask once per session: *"Restructure global (at `<global>`) or local (`<local>`)?"* Use the answer as the root.
+
+All file operations below use `root`.
 
 ---
 
